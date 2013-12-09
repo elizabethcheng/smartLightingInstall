@@ -13,7 +13,8 @@ sudo apt-get install gperf
 sudo apt-get install git 
 sudo apt-get install gcc 
 sudo apt-get install java-devel 
-sudo apt-get install gcc-c\+\+ 
+#sudo apt-get install gcc-c++ 
+sudo apt-get install g++ 
 
 ./Bootstrap
 ./configure

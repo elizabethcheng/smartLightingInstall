@@ -6,6 +6,7 @@ from time import mktime, localtime, gmtime, strftime
 from Tkinter import *
 from PIL import Image, ImageTk
 from subprocess import call
+from subprocess import Popen
 
 class Meter(tk.Frame):
     def __init__(self, master, width=300, height=20, bg='white', fillcolor='orchid1',value=0.0, text=None, font=None, textcolor='black', *args, **kw):
@@ -130,7 +131,7 @@ class Application(tk.Frame):
         self.m.set(0.0, 'Starting demo...')
         self.m.after(10, lambda: self.demo(self.m, 0.0))
         # Call backend function here!
-        #self.installTinyOS()
+        self.installTinyOS()
         self.nextButton.config(state='normal')
 
     def smapFolderPage(self):
@@ -240,12 +241,10 @@ class Application(tk.Frame):
 
     def installTinyOS(self):
         #run terminal command here
-        call(["ls"])
         call(["sh", "tinyos_install.sh"])
 
     def installSmap(self):
         #run terminal commands here
-        call(["ls"])
         call(["sh", "smap_install.sh"])
         folderName = self.entryText.get()
         print folderName
@@ -253,6 +252,7 @@ class Application(tk.Frame):
 
     def configureSensor(self):
         sensorNum = self.entryText.get()
+        Popen(["ls", "~/", "-d"])
         call(["make", "telosb", "install,", str(sensorNum)])
         print sensorNum
         self.sensors.append("light" + str(sensorNum))
