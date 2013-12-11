@@ -1,0 +1,7 @@
+sensors: ["light1", "light2"]
+window: "light8"
+lat: 22
+lon: 1
+timezone: "USPacific"
+UUID_dict: [["uuid1", "light1"], ["uuid2", "light2"]]
+start_unix: 1178203948

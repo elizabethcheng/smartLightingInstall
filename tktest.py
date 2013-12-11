@@ -115,8 +115,6 @@ class Application(tk.Frame):
         # Create the 'Next' button, which calls self.next() and takes user to next page
         # Doubles as the 'Next Sensor' button
         self.nextButton = tk.Button(self, text = 'Next', command = self.next)
-        # Create the 'Last Sensor' button, which indicates that user is finished inputting light sensors
-        self.finishButton = tk.Button(self, text = 'Finish', command = self.lastSensor)
         self.nextButton.grid(column=1, row=3)
         self.quitButton.grid(column=2, row=3)
         # Increment page count (needed in self.next method)
@@ -124,14 +122,14 @@ class Application(tk.Frame):
     def tinyOSInstallPage(self):
         #self.image.grid_forget()
         self.nextButton.config(state='disabled')
-        self.text['text'] = "Please wait while the wizard installs TinyOS software"
+        self.text['text'] = "Please wait while the wizard installs TinyOS software."
         self.text.grid(row=1, column=0, columnspan=3, rowspan=2)
         self.m = Meter(self, relief='ridge', bd=3)
         self.m.grid(row=2, column=0, columnspan=3)
         self.m.set(0.0, 'Starting demo...')
         self.m.after(10, lambda: self.demo(self.m, 0.0))
         # Call backend function here!
-        self.installTinyOS()
+        #self.installTinyOS()
         self.nextButton.config(state='normal')
 
     def smapFolderPage(self):
@@ -143,6 +141,7 @@ class Application(tk.Frame):
         self.entry.grid(column=0, row=2, columnspan=3)
 
     def smapInstallPage(self):
+        self.nextButton.config(state='disabled')
         self.entry.grid_forget()
         self.text['text'] = "Please wait while the wizard sets up sMAP."
         self.text.grid(row=1, column=0, columnspan=3, rowspan=2)
@@ -153,36 +152,48 @@ class Application(tk.Frame):
         # Call backend function here!
         #self.installSmap()
         #If successful, change text to: "sMAP successfully installed."
-
-    def datePage(self):
-        self.text['text'] = "Please enter the current date (Ex: MM/DD/YYYY)"
-        self.entry.grid(column=0, row=2, columnspan=3)
+        self.text['text'] = "sMAP successfully installed."
+        self.nextButton.config(state='normal')
 
     def sensorPlugPage(self):
-        self.text['text'] = "Pick a light sensor and put two batteries in it"
-        self.text2 = tk.Label(self, text = "Plug the light sensor into a USB port." +\
-            " Click 'Next' when you are finished.", wraplength = "450", justify = LEFT, \
-            anchor = W, font=self.textFont) 
-        self.text2.grid(column=0, row=3, columnspan=3)
+        self.finishButton.grid_forget()
+        self.m.grid_forget()
+        self.columnconfigure(0, minsize="350")
+        self.columnconfigure(1, minsize="120")
+        self.columnconfigure(2, minsize="120")
+        self.text['text'] = "Pick a light sensor and put two batteries in it. Plug the light sensor into a USB port. Click 'Next' when you are finished."
+        self.text.grid(row=1, column=0, columnspan=3, rowspan=2)
 
     def sensorIDPage(self):
-        self.m.grid_forget()
-        self.text2.grid_forget()
+        self.entryText.set('')
         self.text['text'] = "Please input the sensor ID of the sensor plugged into " + \
                 "your computer. (Ex: '1', '4', etc.)."
         self.entry.grid(column=0, row=2, columnspan=3)
 
     def sensorConfigurePage(self):
+        self.columnconfigure(0, minsize="230")
+        self.columnconfigure(1, minsize="120")
+        self.columnconfigure(2, minsize="120")
+        self.columnconfigure(3, minsize="120")
         self.entry.grid_forget()
-        self.text['text'] = "Please wait while we configure the light sensor" 
-        self.text.grid(row=1, column=0, columnspan=3)
+        self.text['text'] = "Please wait while we configure the light sensor." 
+        self.text.grid(row=1, column=0, columnspan=4, rowspan=1)
+        # Create the 'Last Sensor' button, which indicates that user is finished inputting light sensors
+        self.nextButton.grid(row=3, column=1)
+        self.quitButton.grid(row=3, column=3)
+        self.finishButton = tk.Button(self, text = 'Finish', command = self.lastSensor)
+        self.finishButton.grid(row=3, column=2)
+        self.nextButton.config(state='disabled')
+        self.finishButton.config(state='disabled')
         self.m = Meter(self, relief='ridge', bd=3)
-        self.m.grid(row=2, column=0, columnspan=3)
+        self.m.grid(row=2, column=0, columnspan=4)
         self.m.set(0.0, 'Starting demo...')
         self.m.after(10, lambda: self.demo(self.m, 0.0))
         #self.configureSensor()
         #If successful, change text to: "Light sensor successfully installed"
         self.text['text'] = "Light sensor 4 successfully installed"
+        self.nextButton.config(state='normal')
+        self.finishButton.config(state='normal')
 
     def baseStationPlugPage(self):
         self.text['text'] = "Put two batteries in the BaseStation mote."
@@ -211,8 +222,8 @@ class Application(tk.Frame):
 
     def next(self):
         # Set the correct page number
-        if self.loop == True and self.page == 9:
-            self.page = 7 
+        if self.loop == True and self.page == 7:
+            self.page = 5 
         else:
             self.page += 1
         self.generatePage()
@@ -229,14 +240,12 @@ class Application(tk.Frame):
         elif self.page == 4:
             self.smapInstallPage()
         elif self.page == 5:
-            self.datePage()
-        elif self.page == 6:
             self.sensorPlugPage()
-        elif self.page == 7:
+        elif self.page == 6:
             self.sensorIDPage()
-        elif self.page == 8:
+        elif self.page == 7:
             self.sensorConfigurePage()
-        elif self.page == 9:
+        elif self.page == 8:
             self.congratzPage()
 
     def installTinyOS(self):
