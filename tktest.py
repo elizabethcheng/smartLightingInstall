@@ -1,12 +1,12 @@
 import Tkinter as tk
 import tkFont
 import time
+import os
 
 from time import mktime, localtime, gmtime, strftime
 from Tkinter import *
 from PIL import Image, ImageTk
 from subprocess import call
-from subprocess import Popen
 
 class Meter(tk.Frame):
     def __init__(self, master, width=300, height=20, bg='white', fillcolor='orchid1',value=0.0, text=None, font=None, textcolor='black', *args, **kw):
@@ -252,14 +252,19 @@ class Application(tk.Frame):
 
     def configureSensor(self):
         sensorNum = self.entryText.get()
-        Popen(["ls", "~/", "-d"])
+        savedPath = os.getcwd()
+        os.chdir('./tinyos-main/apps/LightSensor')
         call(["make", "telosb", "install,", str(sensorNum)])
+        os.chdir(savedPath)
         print sensorNum
         self.sensors.append("light" + str(sensorNum))
         #run terminal commands here
 
     def configureBaseStation(self):
+        savedPath = os.getcwd()
+        os.chdir('./tinyos-main/apps/BaseStation')
         call(["make", "telosb", "install"])
+        os.chdir(savedPath)
 
 app = Application()
 app.master.title('Smart Lighting')
