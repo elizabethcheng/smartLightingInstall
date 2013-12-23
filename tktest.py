@@ -64,8 +64,19 @@ class Application(tk.Frame):
             slant="italic")
         # Font for regular text
         self.textFont = tkFont.Font(family="Helvetica", size=14)
+        # Create the 'Cancel' button, which exits the application when pressed
+        # Doubles as the 'Finish' button on the last page
+        self.quitButton = tk.Button(self, text='Cancel', command=self.quit)
+        # Create the 'Next' button, which calls self.next() and takes user to next page
+        # Doubles as the 'Next Sensor' button
+        self.nextButton = tk.Button(self, text = 'Next', command = self.next)
+        # Create the button but DO NOT GRID IT
+        self.finishButton = tk.Button(self, text = 'Finish', command = self.lastSensor)
         # Variable to store entry box text (Sensor #, etc.)
         self.entryText = StringVar()
+        # Set self.entryText so that disableNextIfEmpty does not disable the next button
+        self.entryText.set('blank')
+        self.entryText.trace('w', self.disableNextIfEmpty)
         # List of light sensor names
         self.sensors = []
         # Current date in unixtime
@@ -106,16 +117,8 @@ class Application(tk.Frame):
             "Please click 'Next' to continue.", wraplength = "450", justify = LEFT, \
             anchor = W, font=self.textFont) 
         self.text.grid(column=0, row=1, columnspan=3, rowspan=2, ipady=".5i")
-        # Create the 'Cancel' button, which exits the application when pressed
-        # Doubles as the 'Finish' button on the last page
-        self.quitButton = tk.Button(self, text='Cancel', command=self.quit)
-        # Create the 'Next' button, which calls self.next() and takes user to next page
-        # Doubles as the 'Next Sensor' button
-        self.nextButton = tk.Button(self, text = 'Next', command = self.next)
         self.nextButton.grid(column=1, row=3)
         self.quitButton.grid(column=2, row=3)
-        # Create the button but DO NOT GRID IT
-        self.finishButton = tk.Button(self, text = 'Finish', command = self.lastSensor)
 
     def tinyOSInstallPage(self):
         #self.image.grid_forget()
@@ -144,9 +147,16 @@ class Application(tk.Frame):
             self.text.grid(rowspan=2)
             self.nextButton.config(state='normal')
 
+    def disableNextIfEmpty(self, *args):
+        if self.entryText.get():
+            self.nextButton.config(state='normal')
+        else:
+            self.nextButton.config(state='disabled')
+
     def smapFolderPage(self):
         self.pb.grid_forget()
         self.text['text'] = "Enter a name for your sMAP data folder:"
+        self.entryText.set('')
         self.entry = tk.Entry(self, cursor="xterm", exportselection=0, \
             textvariable=self.entryText)
         self.entry.grid(column=0, row=2, columnspan=3)
