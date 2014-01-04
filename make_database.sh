@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python GeneralDB.py
+python GeneralDB.py db_info.txt

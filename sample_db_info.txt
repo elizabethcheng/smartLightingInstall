@@ -1,7 +1,7 @@
-sensors: ["light1", "light2"]
-window: "light8"
-lat: 22
-lon: 1
-timezone: "USPacific"
-UUID_dict: [["uuid1", "light1"], ["uuid2", "light2"]]
-start_unix: 1178203948
+light1, light2 #sensors 
+light8 #window
+37 52 27.447 #lat
+122 15 33.3864 W #lon
+US/Pacific #timezone 
+light1:uuid1, light2:uuid2 #UUID_dict
+1178203948 #start_unix 

@@ -26,21 +26,50 @@ import pytz
 from pytz import timezone
 import math
 import pdb
+import sys
 
 import sqlite3
 from sqlite3 import dbapi2 as sqlite3
 from scipy.cluster.vq import *
 
+if __name__ == '__main__':
+    # Read db_info.txt
+    f = open(sys.argv[1], 'r')
+    split_lines = f.read().split('\n')
+    print split_lines
+    # Parse the file
+    sensors = split_lines[0].split(',')
+    print sensors
+    sensors_strip = [x.strip() for x in sensors]
+    print sensors_strip
+    window = split_lines[1].strip()
+    print window
+    lat = split_lines[2].strip()
+    lon = split_lines[3].strip()
+    print lat + ', ' + lon
+    timezone = split_lines[4].strip()
+    print timezone
+    uuid_dict = {}
+    uuids = split_lines[5].split(',')
+    for elem in uuids:
+        split = elem.split(':')
+        uuid_dict[split[0].strip()] = split[1].strip()
+    print uuid_dict
+    start_unix = split_lines[6].strip()
+    print start_unix
+    # Create tables and add data
+    #create_db(sensors_strip, window, lat, lon, timezone, uuid_dict, start_unix)
+    print "done"
+
 def create_db(sensors, window, lat, lon, timezone, UUID_dict, start_unix):
     create_tables()
     createLightData()
-
     
     ##########################
     ### CREATE TABLE CODE ####
     ##########################
 
-    def create_tables(sensors):
+    def create_tables():
 
         #Create a database data.db and connect to it
         connection = sqlite3.connect('data.db')
@@ -68,12 +97,6 @@ def create_db(sensors, window, lat, lon, timezone, UUID_dict, start_unix):
     ######################################        
     ### LIGHT TABLES CODE ################
     ######################################
-
-    #lat and lon global variables of BEST lab
-    best_lat = "37 52 27.447"
-    best_lon = "122 15 33.3864 W"
-    best_timezone = "US/Pacific"
-
 
     def parse(url):
         """Returns a list of the timestamps, readings, and unixtimes of each
@@ -218,7 +241,7 @@ def create_db(sensors, window, lat, lon, timezone, UUID_dict, start_unix):
         return [str(eldeg), str(azdeg)]
 
 
-    def createData(sensor, start_unix, end, lat, lon, timezon):
+    def createData(sensor, start, end, lat, lon, timezon):
         connection = sqlite3.connect('data.db')
         cursor = connection.cursor()
         sensorID = UUID_dict[sensor]
@@ -246,7 +269,7 @@ def create_db(sensors, window, lat, lon, timezone, UUID_dict, start_unix):
         connection = sqlite3.connect('data.db')
         cursor = connection.cursor()
         for elem in sensors:
-            createData(1, start_unix, str(int(time.time())*1000),lat, lon, timezone)
+            createData(elem, start_unix, str(int(time.time())*1000),lat, lon, timezone)
         connection.commit()
         print "Processing Light Tables"
         insert_movingavg()
@@ -263,7 +286,7 @@ def create_db(sensors, window, lat, lon, timezone, UUID_dict, start_unix):
         for elem in sensors:
             updateData(elem, lat, lon, timezone)
 
-    def updateData(sensor, old, nasa, lat, lon, timezon):
+    def updateData(sensor, lat, lon, timezon):
         connection = sqlite3.connect('data.db')
         cursor = connection.cursor()
         sensorID = sensors_dict[sens_no]

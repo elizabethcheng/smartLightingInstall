@@ -10,7 +10,9 @@ make
 sudo make install
 
 # Part 3: Set environment variables in ~/.bashrc file
-echo "export TOSROOT=$HOME/smart/smartLightingInstall/tinyos-main" >> ~/.bashrc
+#echo "export TOSROOT=$HOME/smart/smartLightingInstall/tinyos-main" >> ~/.bashrc
+#TODO: TEST FOLLOWING LINE
+echo "export TOSROOT=$PWD/tinyos-main" >> ~/.bashrc
 echo "export TOSDIR=$TOSROOT/tos" >> ~/.bashrc
 echo "export MAKERULES=$TOSROOT/support/make/Makerules" >> ~/.bashrc
 echo "export CLASSPATH=$TOSROOT/support/sdk/java/tinyos.jar:." >> ~/.bashrc
@@ -48,5 +50,3 @@ mv tinyos-main/tos/chips/msp430/McuSleepC.nc.new2 tinyos-main/tos/chips/msp430/M
 sed 's/100/40/g' tinyos-main/tos/types/Lpl.h > tinyos-main/tos/types/Lpl.h.new
 rm tinyos-main/tos/types/Lpl.h
 mv tinyos-main/tos/types/Lpl.h.new tinyos-main/tos/types/Lpl.h
- 
-

@@ -5,50 +5,9 @@ import ttk
 import time
 import threading
 
-from time import mktime, localtime, gmtime, strftime
 from Tkinter import *
-from PIL import Image, ImageTk
 from subprocess import call
-
-class Meter(tk.Frame):
-    def __init__(self, master, width=300, height=20, bg='white', fillcolor='orchid1',value=0.0, text=None, font=None, textcolor='black', *args, **kw):
-        tk.Frame.__init__(self, master, bg=bg, width=width, height=height, *args, **kw)
-        self._value = value
-        self._canv = tk.Canvas(self, bg=self['bg'], width=self['width'], height=self['height'],highlightthickness=0, relief='flat', bd=0)
-        self._canv.pack(fill='both', expand=1)
-        self._rect = self._canv.create_rectangle(0, 0, 0, self._canv.winfo_reqheight(), fill=fillcolor, width=0)
-        self._text = self._canv.create_text(self._canv.winfo_reqwidth()/2, self._canv.winfo_reqheight()/2,text='', fill=textcolor)
-        if font:
-            self._canv.itemconfigure(self._text, font=font)
-            self.set(value, text)
-            self.bind('<Configure>', self._update_coords)
-    
-    def _update_coords(self, event):
-        '''Updates the position of the text and rectangle inside the canvas when the size of
-            the widget gets changed.'''
-        # looks like we have to call update_idletasks() twice to make sure
-        # to get the results we expect
-        self._canv.update_idletasks()
-        self._canv.coords(self._text, self._canv.winfo_width()/2, self._canv.winfo_height()/2)
-        self._canv.coords(self._rect, 0, 0, self._canv.winfo_width()*self._value, self._canv.winfo_height())
-        self._canv.update_idletasks()
-        
-    def get(self):
-        return self._value, self._canv.itemcget(self._text, 'text')
-    
-    def set(self, value=0.0, text=None):
-        #make the value failsafe:
-        if value < 0.0:
-            value = 0.0
-        elif value > 1.0:
-            value = 1.0
-        self._value = value
-        if text == None:
-            #if no text is specified use the default percentage string:
-            text = str(int(round(100 * value))) + ' %'
-        self._canv.coords(self._rect, 0, 0, self._canv.winfo_width()*value, self._canv.winfo_height())
-        self._canv.itemconfigure(self._text, text=text)
-        self._canv.update_idletasks()
+from pytz import all_timezones
 
 class Application(tk.Frame):
     def __init__(self, master=None):
@@ -57,78 +16,68 @@ class Application(tk.Frame):
         self.page = 1
         # Boolean keeping track of entering sensor ID loop
         self.loop = True 
-        # Path for image on first page
-        self.imgPath = './moel.gif'
-        # Font for 'SmartLighting2013 title text'
+        # Font for 'SmartLighting2013' title text
         self.titleFont = tkFont.Font(family="Times", size=36, weight="bold", \
             slant="italic")
         # Font for regular text
         self.textFont = tkFont.Font(family="Helvetica", size=14)
         # Create the 'Cancel' button, which exits the application when pressed
-        # Doubles as the 'Finish' button on the last page
         self.quitButton = tk.Button(self, text='Cancel', command=self.quit)
         # Create the 'Next' button, which calls self.next() and takes user to next page
-        # Doubles as the 'Next Sensor' button
         self.nextButton = tk.Button(self, text = 'Next', command = self.next)
-        # Create the button but DO NOT GRID IT
+        # Create the 'Finish' button, which indicates the last light sensor
         self.finishButton = tk.Button(self, text = 'Finish', command = self.lastSensor)
-        # Variable to store entry box text (Sensor #, etc.)
+        # Variable to store the first entry box text (Sensor #, folder name, etc.)
         self.entryText = StringVar()
         # Set self.entryText so that disableNextIfEmpty does not disable the next button
         self.entryText.set('blank')
+        # Use trace to disable the Next button if entry box is blank
         self.entryText.trace('w', self.disableNextIfEmpty)
+        # Variable to store latitude entry box test
+        self.latText = StringVar()
+        # Set self.latText so that disableNextIfEmpty does not disable the next button
+        self.latText.set('blank')
+        # Use trace to disable the Next button if entry box is blank
+        self.latText.trace('w', self.disableNextIfEmpty)
+        # Variable to store longitude entry box test
+        self.lonText = StringVar()
+        # Set self.lonText so that disableNextIfEmpty does not disable the next button
+        self.lonText.set('blank')
+        # Use trace to disable the Next button if entry box is blank
+        self.lonText.trace('w', self.disableNextIfEmpty)
         # List of light sensor names
         self.sensors = []
-        # Current date in unixtime
-        self.currentDate = ""
         # Create Layout for Page 1
         self.columnconfigure(0, minsize="350")
         self.columnconfigure(1, minsize="120")
         self.columnconfigure(2, minsize="120")
-        self.rowconfigure(0, minsize="120", pad="20")
-        self.rowconfigure(1, minsize="100")
+        self.rowconfigure(0, minsize="100", pad="20")
+        self.rowconfigure(1, minsize="135")
         self.rowconfigure(2, minsize="100")
-        self.rowconfigure(3, minsize="150", pad="20")
+        self.rowconfigure(3, minsize="140")
         # Create application window
         self.grid()
         # Create widgets for first page
         self.titlePage()
 
-    def demo(self, meter, value):
-        meter.set(value)
-        if value < 1.0:
-            value = value + 0.005 
-            meter.after(50, lambda: self.demo(meter, value))
-        else:
-            meter.set(value, 'Demo successfully finished')
-
     def titlePage(self):
         # Create the SmartLighting2013 title
         self.title = tk.Label(self, text = "SmartLighting2013", font = self.titleFont)
-        self.title.grid(column = 0, row = 0, columnspan = 3, ipadx = "20", \
-                ipady="10", sticky=tk.W)
-        # Add photo image to first page
-        #self.img = ImageTk.PhotoImage(Image.open(self.imgPath))
-        #self.image = tk.Label(self, image = self.img)
-        #self.image.grid(column = 0, row = 1, columnspan=3, rowspan=1, sticky=tk.N)
+        self.title.grid(column = 0, row = 0, columnspan = 3, ipadx = "30", sticky=tk.W)
         # Add text widget
         self.text = tk.Label(self, text = "The SmartLighting Installation wizard " + \
-            "will step through the software installation and light sensor set-up. " + \
-            "Please click 'Next' to continue.", wraplength = "450", justify = LEFT, \
+            "will step through the software installation and light sensor set-up " + \
+            "for your building's Smart Lighting system. " + \
+            "Please click 'Next' to continue.", wraplength = "470", justify = LEFT, \
             anchor = W, font=self.textFont) 
-        self.text.grid(column=0, row=1, columnspan=3, rowspan=2, ipady=".5i")
-        self.nextButton.grid(column=1, row=3)
-        self.quitButton.grid(column=2, row=3)
+        self.text.grid(column=0, row=1, columnspan=3, rowspan=2)
+        self.nextButton.grid(column=1, row=3, sticky=tk.W)
+        self.quitButton.grid(column=2, row=3, sticky=tk.W)
 
     def tinyOSInstallPage(self):
-        #self.image.grid_forget()
         self.nextButton.config(state='disabled')
         self.text['text'] = "Please wait while the wizard installs TinyOS software."
         self.text.grid(row=1, column=0, columnspan=3, rowspan=2)
-        #self.m = Meter(self, relief='ridge', bd=3)
-        #self.m.grid(row=2, column=0, columnspan=3)
-        #self.m.set(0.0, 'Starting demo...')
-        #self.m.after(10, lambda: self.demo(self.m, 0.0))
         self.pb = ttk.Progressbar(self, orient="horizontal", length = 200, mode="indeterminate")
         self.pb.grid(row=2, column=0, columnspan=3)
         global install_thread
@@ -148,7 +97,7 @@ class Application(tk.Frame):
             self.nextButton.config(state='normal')
 
     def disableNextIfEmpty(self, *args):
-        if self.entryText.get():
+        if self.entryText.get() and self.latText.get() and self.lonText.get():
             self.nextButton.config(state='normal')
         else:
             self.nextButton.config(state='disabled')
@@ -167,10 +116,6 @@ class Application(tk.Frame):
         self.entry.grid_forget()
         self.text['text'] = "Please wait while the wizard sets up sMAP."
         self.text.grid(row=1, column=0, columnspan=3, rowspan=2)
-        #self.m = Meter(self, relief='ridge', bd=3)
-        #self.m.grid(row=2, column=0, columnspan=3)
-        #self.m.set(0.0, 'Starting demo...')
-        #self.m.after(10, lambda: self.demo(self.m, 0.0))
         self.pb = ttk.Progressbar(self, orient="horizontal", length = 200, mode="indeterminate")
         self.pb.grid(row=2, column=0, columnspan=3)
         global install_thread
@@ -198,7 +143,8 @@ class Application(tk.Frame):
         self.columnconfigure(3, minsize="0")
         self.nextButton.grid(row=3, column=1)
         self.quitButton.grid(row=3, column=2)
-        self.text['text'] = "Pick a light sensor and put two batteries in it. Plug the light sensor into a USB port. Click 'Next' when you are finished."
+        self.text['text'] = "Pick a light sensor and put two batteries in it. Plug the " +\
+                "light sensor into a USB port. Click 'Next' when you are finished."
         self.text.grid(row=1, column=0, columnspan=3, rowspan=2)
         self.title.grid(row=0, column=0, columnspan=3)
         self.update_idletasks()
@@ -207,7 +153,6 @@ class Application(tk.Frame):
         self.entryText.set('')
         self.text['text'] = "Please input the sensor ID of the sensor plugged into " + \
                 "your computer. (Ex: '1', '4', etc.)."
-        #self.text.grid(rowspan=1)
         self.entry.grid(column=0, row=2, columnspan=3, rowspan=1)
         self.update_idletasks()
 
@@ -220,17 +165,12 @@ class Application(tk.Frame):
         self.title.grid(row=0, column=0, columnspan=4)
         self.text['text'] = "Please wait while we configure the light sensor." 
         self.text.grid(row=1, column=0, rowspan=2, columnspan=4)
-        # Create the 'Last Sensor' button, which indicates that user is finished inputting light sensors
         self.nextButton.grid(row=3, column=1)
         self.quitButton.grid(row=3, column=3)
-        self.finishButton = tk.Button(self, text = 'Finish', command = self.lastSensor)
-        self.finishButton.grid(row=3, column=2)
+        # Grid the 'Finish' button, which indicates that user is finished inputting light sensors
+        self.finishButton.grid(row=3, column=2, sticky=tk.W)
         self.nextButton.config(state='disabled')
         self.finishButton.config(state='disabled')
-        #self.m = Meter(self, relief='ridge', bd=3)
-        #self.m.grid(row=2, column=0, columnspan=4)
-        #self.m.set(0.0, 'Starting demo...')
-        #self.m.after(10, lambda: self.demo(self.m, 0.0))
         self.pb = ttk.Progressbar(self, orient="horizontal", length = 200, mode="indeterminate")
         self.pb.grid(row=2, column=0, columnspan=4, rowspan=1)
         global install_thread
@@ -239,8 +179,6 @@ class Application(tk.Frame):
         self.pb.start()
         install_thread.start()
         self.after(20, self.check_sensorconfig_thread)
-        #self.configureSensor()
-        #If successful, change text to: "Light sensor successfully installed"
         self.update_idletasks()
 
     def check_sensorconfig_thread(self):
@@ -248,8 +186,10 @@ class Application(tk.Frame):
             self.after(20, self.check_sensorconfig_thread)
         else:
             self.pb.stop()
-            self.text['text'] = "Light sensor " + self.entryText.get() + " successfully installed"
-            #self.text.grid(rowspan=2)
+            self.text['text'] = "Light sensor " + self.entryText.get() + " successfully " +\
+                    "installed. You may now place the sensor in the room. Please make sure " +\
+                    "that one sensor is placed at a window. You may also want to record each " +\
+                    "sensor's position in the room for your own convenience."
             self.nextButton.config(state='normal')
             self.finishButton.config(state='normal')
 
@@ -273,11 +213,6 @@ class Application(tk.Frame):
         self.nextButton.config(state='disabled')
         self.quitButton.config(state='disabled')
         self.text['text'] = "Please wait while we configure the BaseStation." 
-        #self.text.grid(row=1, column=0, columnspan=3, rowspan=1)
-        #self.m = Meter(self, relief='ridge', bd=3)
-        #self.m.grid(row=2, column=0, columnspan=3)
-        #self.m.set(0.0, 'Starting demo...')
-        #self.m.after(10, lambda: self.demo(self.m, 0.0))
         self.pb = ttk.Progressbar(self, orient="horizontal", length = 200, mode="indeterminate")
         self.pb.grid(row=2, column=0, columnspan=3)
         global install_thread
@@ -297,13 +232,91 @@ class Application(tk.Frame):
             self.nextButton.config(state='normal')
             self.quitButton.config(state='normal')
 
-    def congratzPage(self):
+    def inputInfoPage(self):
         self.pb.grid_forget()
+        self.columnconfigure(0, minsize="80")
+        self.columnconfigure(1, minsize="180")
+        self.columnconfigure(2, minsize="220")
+        self.columnconfigure(3, minsize="110")
+        self.rowconfigure(0, minsize="100", pad="20")
+        self.rowconfigure(1, minsize="90")
+        self.rowconfigure(2, minsize="50")
+        self.rowconfigure(3, minsize="50")
+        self.rowconfigure(4, minsize="50")
+        self.rowconfigure(5, minsize="50")
+        self.rowconfigure(6, minsize="85", pad="20")
+        self.latText.set('')
+        self.lonText.set('')
+        self.text['text'] = "Please select the ID number of the window sensor " +\
+                "and the correct timezone. Then input an approximate latitude " +\
+                "(Ex: '37 52 27.447') and an approximate longitude (Ex: '12 15 33.386 W')."
+        self.text.grid(columnspan=4, sticky=tk.N)
+        self.windowVar = StringVar()
+        self.windowVar.set("Select window sensor ID")
+        self.windowLabel = tk.Label(self, text="Window Sensor ID:")
+        self.windowLabel.grid(column=1, row=2, sticky=tk.E)
+        self.windowMenu = tk.OptionMenu(self, self.windowVar, *self.sensors) 
+        self.windowMenu.config(width="20")
+        self.windowMenu.grid(column=2, row=2, sticky="ew")
+        self.timezoneVar = StringVar()
+        self.timezoneVar.set("Select timezone")
+        self.timezoneLabel = tk.Label(self, text="Timezone:")
+        self.timezoneLabel.grid(column=1, row=3, sticky=tk.E)
+        self.timezoneMenu = tk.OptionMenu(self, self.timezoneVar, *all_timezones) 
+        self.timezoneMenu.config(width="20")
+        self.timezoneMenu.grid(column=2, row=3, sticky="ew")
+        self.latLabel = tk.Label(self, text="Latitude:")
+        self.latLabel.grid(column=1, row=4, sticky=tk.E) 
+        self.latEntry = tk.Entry(self, cursor="xterm", exportselection=0, \
+            textvariable=self.latText)
+        self.latEntry.grid(column=2, row=4, sticky="ew")
+        self.lonLabel = tk.Label(self, text="Longitude:")
+        self.lonLabel.grid(column=1, row=5, sticky=tk.E)
+        self.lonEntry = tk.Entry(self, cursor="xterm", exportselection=0, \
+            textvariable=self.lonText)
+        self.lonEntry.grid(column=2, row=5, sticky="ew")
         self.nextButton.grid_forget()
+        self.nextButton.grid(row=6, column=2)
+        self.quitButton.grid(row=6, column=3)
+        self.update_idletasks()
+
+    def congratzPage(self):
+        # Record needed info in db_info.txt
+        f = open('db_info.txt', 'w')
+        sensors = ','.join(["light" + x for x in self.sensors])
+        f.write(sensors + '\n')
+        f.write('light' + self.windowVar.get() + '\n')
+        f.write(self.latText.get() + '\n')
+        f.write(self.lonText.get() + '\n')
+        f.write(self.timezoneVar.get() + '\n')
+        f.write(str(int(time.time())))
+        f.close()
+        self.nextButton.grid_forget()
+        self.windowLabel.grid_forget()
+        self.windowMenu.grid_forget()
+        self.latLabel.grid_forget()
+        self.latEntry.grid_forget()
+        self.lonLabel.grid_forget()
+        self.lonEntry.grid_forget()
+        self.timezoneLabel.grid_forget()
+        self.timezoneMenu.grid_forget()
+        self.columnconfigure(0, minsize="350")
+        self.columnconfigure(1, minsize="120")
+        self.columnconfigure(2, minsize="120")
+        self.columnconfigure(3, minsize="0")
+        self.rowconfigure(0, minsize="100", pad="20")
+        self.rowconfigure(1, minsize="135")
+        self.rowconfigure(2, minsize="100")
+        self.rowconfigure(3, minsize="140", pad="20")
+        self.rowconfigure(4, minsize="0")
+        self.rowconfigure(5, minsize="0")
+        self.rowconfigure(6, minsize="0")
         self.text['text'] = "Congratulations! You have successfully installed " + \
-            "SmartLighting. Click 'Finish' to exit the installation wizard."
-        self.text.grid(row=1, column=0, columnspan=3, rowspan=2)
-        self.quitButton['text'] = "Finish"
+            "SmartLighting. Click 'Finish' to exit the installation wizard and to " +\
+            "begin collecting sensor data."
+        self.text.grid(row=1, column=0, columnspan=3, rowspan=2, sticky=tk.N+tk.S)
+        self.quitButton['text'] = 'Finish'
+        self.quitButton.grid(row=3, column=2)
         self.update_idletasks()
 
     def next(self):
@@ -336,10 +349,12 @@ class Application(tk.Frame):
         elif self.page == 9:
             self.baseStationConfigurePage()
         elif self.page == 10:
+            self.inputInfoPage()
+        else:
             self.congratzPage()
 
     def installTinyOS(self):
-        #run terminal command here
+        #call(["sh", "nesc.sh"])
         #call(["sh", "tinyos_install.sh"])
         x = [i for i in range(2)]
         for elem in x:
@@ -347,35 +362,33 @@ class Application(tk.Frame):
             time.sleep(1)
 
     def installSmap(self):
-        #run terminal commands here
         #call(["sh", "smap_install.sh"])
-        #folderName = self.entryText.get()
-        #print folderName
-        #call(["sh", "smap_folder.sh"])
+        self.folderName = self.entryText.get()
+        print self.folderName
         x = [i for i in range(2)]
         for elem in x:
             print x
             time.sleep(1)
 
     def configureSensor(self):
-        #sensorNum = self.entryText.get()
-        #savedPath = os.getcwd()
+        sensorNum = self.entryText.get()
+        savedPath = os.getcwd()
         #os.chdir('./tinyos-main/apps/LightSensor')
         #call(["make", "telosb", "install,", str(sensorNum)])
-        #os.chdir(savedPath)
-        #print sensorNum
-        #self.sensors.append("light" + str(sensorNum))
-        #run terminal commands here
+        os.chdir(savedPath)
+        print sensorNum
+        self.sensors.append(str(sensorNum))
         x = [i for i in range(2)]
         for elem in x:
             print x
             time.sleep(1)
 
     def configureBaseStation(self):
-        #savedPath = os.getcwd()
+        savedPath = os.getcwd()
         #os.chdir('./tinyos-main/apps/BaseStation')
         #call(["make", "telosb", "install"])
-        #os.chdir(savedPath)
+        os.chdir(savedPath)
+        #Create local database HERE
         x = [i for i in range(2)]
         for elem in x:
             print x
