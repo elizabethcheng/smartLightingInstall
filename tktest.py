@@ -45,6 +45,12 @@ class Application(tk.Frame):
         self.lonText.set('blank')
         # Use trace to disable the Next button if entry box is blank
         self.lonText.trace('w', self.disableNextIfEmpty)
+        self.windowVar = StringVar()
+        self.windowVar.set('blank')
+        self.windowVar.trace('w', self.disableNextIfEmpty)
+        self.timezoneVar = StringVar()
+        self.timezoneVar.set('blank')
+        self.timezoneVar.trace('w', self.disableNextIfEmpty)
         # List of light sensor names
         self.sensors = []
         # Create Layout for Page 1
@@ -97,7 +103,9 @@ class Application(tk.Frame):
             self.nextButton.config(state='normal')
 
     def disableNextIfEmpty(self, *args):
-        if self.entryText.get() and self.latText.get() and self.lonText.get():
+        if self.entryText.get() and self.latText.get() and self.lonText.get() \
+                and self.windowVar.get() != "Select window sensor ID"\
+                and self.timezoneVar.get() != "Select timezone":
             self.nextButton.config(state='normal')
         else:
             self.nextButton.config(state='disabled')
@@ -211,7 +219,6 @@ class Application(tk.Frame):
         
     def baseStationConfigurePage(self):
         self.nextButton.config(state='disabled')
-        self.quitButton.config(state='disabled')
         self.text['text'] = "Please wait while we configure the BaseStation." 
         self.pb = ttk.Progressbar(self, orient="horizontal", length = 200, mode="indeterminate")
         self.pb.grid(row=2, column=0, columnspan=3)
@@ -230,7 +237,6 @@ class Application(tk.Frame):
             self.text['text'] = "BaseStation successfully installed."
             self.text.grid(rowspan=2)
             self.nextButton.config(state='normal')
-            self.quitButton.config(state='normal')
 
     def inputInfoPage(self):
         self.pb.grid_forget()
@@ -251,14 +257,12 @@ class Application(tk.Frame):
                 "and the correct timezone. Then input an approximate latitude " +\
                 "(Ex: '37 52 27.447') and an approximate longitude (Ex: '12 15 33.386 W')."
         self.text.grid(columnspan=4, sticky=tk.N)
-        self.windowVar = StringVar()
         self.windowVar.set("Select window sensor ID")
         self.windowLabel = tk.Label(self, text="Window Sensor ID:")
         self.windowLabel.grid(column=1, row=2, sticky=tk.E)
         self.windowMenu = tk.OptionMenu(self, self.windowVar, *self.sensors) 
         self.windowMenu.config(width="20")
         self.windowMenu.grid(column=2, row=2, sticky="ew")
-        self.timezoneVar = StringVar()
         self.timezoneVar.set("Select timezone")
         self.timezoneLabel = tk.Label(self, text="Timezone:")
         self.timezoneLabel.grid(column=1, row=3, sticky=tk.E)
@@ -280,18 +284,7 @@ class Application(tk.Frame):
         self.quitButton.grid(row=6, column=3)
         self.update_idletasks()
 
-    def congratzPage(self):
-        # Record needed info in db_info.txt
-        f = open('db_info.txt', 'w')
-        sensors = ','.join(["light" + x for x in self.sensors])
-        f.write(sensors + '\n')
-        f.write('light' + self.windowVar.get() + '\n')
-        f.write(self.latText.get() + '\n')
-        f.write(self.lonText.get() + '\n')
-        f.write(self.timezoneVar.get() + '\n')
-        f.write(str(int(time.time())))
-        f.close()
-        self.nextButton.grid_forget()
+    def initializeNetworkPage(self):
         self.windowLabel.grid_forget()
         self.windowMenu.grid_forget()
         self.latLabel.grid_forget()
@@ -311,12 +304,62 @@ class Application(tk.Frame):
         self.rowconfigure(4, minsize="0")
         self.rowconfigure(5, minsize="0")
         self.rowconfigure(6, minsize="0")
-        self.text['text'] = "Congratulations! You have successfully installed " + \
-            "SmartLighting. Click 'Finish' to exit the installation wizard and to " +\
-            "begin collecting sensor data."
+        self.text['text'] = "The system is currently initializing the Wireless Sensor Network.\n\n" +\
+                "1. A terminal window will appear. When prompted by the terminal, " +\
+                "provide the following responses:\n\n     -Enter the number of LIGHT " +\
+                "ONLY sensor nodes.\n     -Enter the number 0 for number of MULTISENSOR " +\
+                "nodes.\n\n2. If the system boots successfully, the terminal will display " +\
+                "the message 'Flushing serial port...' DO NOT CLOSE THE TERMINAL " +\
+                "WINDOW!\n\n3. Click the 'Next' button to continue the installation."
         self.text.grid(row=1, column=0, columnspan=3, rowspan=2, sticky=tk.N+tk.S)
-        self.quitButton['text'] = 'Finish'
+        self.nextButton.grid(row=3, column=1)
         self.quitButton.grid(row=3, column=2)
+        global install_thread
+        install_thread = threading.Thread(target=self.initializeWSN)
+        install_thread.daemon = True
+        install_thread.start()
+        self.update_idletasks()
+        #self.after(20, self.check_baseconfig_thread)
+
+    def uuidPage(self):
+        self.nextButton.config(state='disabled')
+        self.text['text'] = "Please wait while sMAP uuid's are retrieved."
+        self.pb = ttk.Progressbar(self, orient="horizontal", length = 200, mode="indeterminate")
+        self.pb.grid(row=2, column=0, columnspan=3)
+        global uuid_thread 
+        uuid_thread = threading.Thread(target=self.writeUUIDs)
+        uuid_thread.daemon = True
+        self.pb.start()
+        uuid_thread.start()
+        self.after(20, self.check_uuid_thread)
+
+    def check_uuid_thread(self):
+        if uuid_thread.is_alive():
+            self.after(20, self.check_uuid_thread)
+        else:
+            self.pb.stop()
+            self.text['text'] = "sMAP uuid's successfully retrieved."
+            self.text.grid(rowspan=2)
+            self.nextButton.config(state='normal')
+
+    def congratzPage(self):
+        # Record needed info in db_info.txt
+        self.pb.grid_forget()
+        f = open('db_info.txt', 'w')
+        sensors = ','.join(["light" + x for x in self.sensors])
+        f.write(sensors + '\n')
+        f.write('light' + self.windowVar.get() + '\n')
+        f.write(self.latText.get() + '\n')
+        f.write(self.lonText.get() + '\n')
+        f.write(self.timezoneVar.get() + '\n')
+        f.write(str(int(time.time())))
+        f.close()
+        self.nextButton.grid_forget()
+        self.text['text'] = "Congratulations! You have successfully installed " + \
+            "SmartLighting. After two weeks, you may create a local database for " +\
+            "data collection and prediction. Click 'Finish' to exit the installation " +\
+            "wizard and to begin collecting sensor data."
+        self.quitButton['text'] = 'Finish'
         self.update_idletasks()
 
     def next(self):
@@ -350,6 +393,10 @@ class Application(tk.Frame):
             self.baseStationConfigurePage()
         elif self.page == 10:
             self.inputInfoPage()
+        elif self.page == 11:
+            self.initializeNetworkPage()
+        elif self.page == 12:
+            self.uuidPage()
         else:
             self.congratzPage()
 
@@ -388,7 +435,29 @@ class Application(tk.Frame):
         #os.chdir('./tinyos-main/apps/BaseStation')
         #call(["make", "telosb", "install"])
         os.chdir(savedPath)
+        # sMAP Log set-up
+        #os.chdir('./tinyos-main/support/sdk/python/SmartLightingPython')
+        # Replace TEST4 with self.folderName
+        #call(["sh", "startMulti.sh"])
+        os.chdir(savedPath) 
         #Create local database HERE
+        x = [i for i in range(2)]
+        for elem in x:
+            print x
+            time.sleep(1)
+
+    def initializeWSN(self):
+        savedPath = os.getcwd()
+        #os.chdir('./tinyos-main/support/sdk/python/SmartLightingPython')
+        #call(["sh", "startMulti.sh"])
+        os.chdir(savedPath)
+        x = [i for i in range(2)]
+        for elem in x:
+            print x
+            time.sleep(1)
+
+    def writeUUIDs(self):
+        #call(["sh", "writeUUIDs.sh"])
         x = [i for i in range(2)]
         for elem in x:
             print x
