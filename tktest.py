@@ -437,10 +437,8 @@ class Application(tk.Frame):
         os.chdir(savedPath)
         # sMAP Log set-up
         #os.chdir('./tinyos-main/support/sdk/python/SmartLightingPython')
-        # Replace TEST4 with self.folderName
-        #call(["sh", "startMulti.sh"])
+        # TODO: Replace TEST4 with self.folderName
         os.chdir(savedPath) 
-        #Create local database HERE
         x = [i for i in range(2)]
         for elem in x:
             print x
