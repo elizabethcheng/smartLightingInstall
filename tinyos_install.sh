@@ -8,29 +8,40 @@ cd tinyos-main/tools
 ./configure
 make
 sudo make install
+cd ../..
+
+# Part 3: Set environment variables in ~/.bashrc file
+#echo "export TOSROOT=$HOME/smart/smartLightingInstall/tinyos-main" >> ~/.bashrc
+#TODO: TEST FOLLOWING LINE
+#echo "export TOSROOT=$PWD/tinyos-main" >> ~/.bashrc
+#echo "export TOSDIR=$TOSROOT/tos" >> ~/.bashrc
+#echo "export MAKERULES=$TOSROOT/support/make/Makerules" >> ~/.bashrc
+#echo "export CLASSPATH=$TOSROOT/support/sdk/java/tinyos.jar:." >> ~/.bashrc
+#echo "export PYTHONPATH=$TOSROOT/support/sdk/python:$PYTHONPATH" >> ~/.bashrc
+#echo "export PATH=$TOSROOT/support/sdk/c:$PATH" >> ~/.bashrc
 
 # Part 3: Set environment variables in ~/.bashrc file
 #echo "export TOSROOT=$HOME/smart/smartLightingInstall/tinyos-main" >> ~/.bashrc
 #TODO: TEST FOLLOWING LINE
 echo "export TOSROOT=$PWD/tinyos-main" >> ~/.bashrc
-echo "export TOSDIR=$TOSROOT/tos" >> ~/.bashrc
-echo "export MAKERULES=$TOSROOT/support/make/Makerules" >> ~/.bashrc
-echo "export CLASSPATH=$TOSROOT/support/sdk/java/tinyos.jar:." >> ~/.bashrc
-echo "export PYTHONPATH=$TOSROOT/support/sdk/python:$PYTHONPATH" >> ~/.bashrc
-echo "export PATH=$TOSROOT/support/sdk/c:$PATH" >> ~/.bashrc
+echo "export TOSDIR=$PWD/tinyos-main/tos" >> ~/.bashrc
+echo "export MAKERULES=$PWD/tinyos-main/support/make/Makerules" >> ~/.bashrc
+echo "export CLASSPATH=$PWD/tinyos-main/support/sdk/java/tinyos.jar:." >> ~/.bashrc
+echo "export PYTHONPATH=$PWD/tinyos-main/support/sdk/python:$PYTHONPATH" >> ~/.bashrc
+echo "export PATH=$PWD/tinyos-main/support/sdk/c:$PATH" >> ~/.bashrc
 
 # Part 4: Tar filing
-mv App App.tar.gz
+cp App App.tar.gz
 mv App.tar.gz tinyos-main/apps
 cd tinyos-main/apps
 tar -xzf App.tar.gz
 cd ../..
 
-mv PythonFiles PythonFiles.tar.gz
+cp PythonFiles PythonFiles.tar.gz
 mv PythonFiles.tar.gz tinyos-main/support/sdk/python
 cd tinyos-main/support/sdk/python
 tar -xzf PythonFiles.tar.gz
-cd ../..
+cd ../../../..
 
 # Part 5: Edit necessary tinyos files
 sed 's/4096/1024/g' tinyos-main/tos/chips/msp430/timer/Msp430DcoSpec.h > tinyos-main/tos/chips/msp430/timer/Msp430DcoSpec.h.new

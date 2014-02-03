@@ -209,7 +209,7 @@ class Application(tk.Frame):
         self.columnconfigure(1, minsize="120")
         self.columnconfigure(2, minsize="120")
         self.columnconfigure(3, minsize="0")
-        self.text['text'] = "Put two batteries in the BaseStation mote. Plug the " +\
+        self.text['text'] = "Plug the " +\
             "BaseStation mote into a USB port. Click 'Next' when you are finished."
         self.text.grid(row=1, column=0, columnspan=3, rowspan=2)
         self.title.grid(row=0, column=0, columnspan=3)
@@ -401,65 +401,76 @@ class Application(tk.Frame):
             self.congratzPage()
 
     def installTinyOS(self):
+        """
+        Installs nesc and tiny-os. Edits App and PythonFiles.
+        Takes about __ minutes.
+        """
         #call(["sh", "nesc.sh"])
         #call(["sh", "tinyos_install.sh"])
-        x = [i for i in range(2)]
-        for elem in x:
-            print x
-            time.sleep(1)
+        #x = [i for i in range(2)]
+        #for elem in x:
+        #    print x
+        #    time.sleep(1)
 
     def installSmap(self):
+        """
+        Installs smap. Takes about __ minutes.
+        """
         #call(["sh", "smap_install.sh"])
         self.folderName = self.entryText.get()
         print self.folderName
-        x = [i for i in range(2)]
-        for elem in x:
-            print x
-            time.sleep(1)
+        #x = [i for i in range(2)]
+        #for elem in x:
+        #    print x
+        #    time.sleep(1)
 
     def configureSensor(self):
         sensorNum = self.entryText.get()
         savedPath = os.getcwd()
-        #os.chdir('./tinyos-main/apps/LightSensor')
-        #call(["make", "telosb", "install,", str(sensorNum)])
+        os.chdir('./tinyos-main/apps/SmartLightingApps/LightSensor')
+        call(["make", "telosb", "install,", str(sensorNum)])
         os.chdir(savedPath)
         print sensorNum
         self.sensors.append(str(sensorNum))
-        x = [i for i in range(2)]
-        for elem in x:
-            print x
-            time.sleep(1)
+        #x = [i for i in range(2)]
+        #for elem in x:
+        #    print x
+        #    time.sleep(1)
 
     def configureBaseStation(self):
         savedPath = os.getcwd()
-        #os.chdir('./tinyos-main/apps/BaseStation')
-        #call(["make", "telosb", "install"])
+        os.chdir('./tinyos-main/apps/BaseStation')
+        call(["make", "telosb", "install"])
         os.chdir(savedPath)
         # sMAP Log set-up
-        #os.chdir('./tinyos-main/support/sdk/python/SmartLightingPython')
+        os.chdir('./tinyos-main/support/sdk/python/SmartLightingPython')
         # TODO: Replace TEST4 with self.folderName
+        findReplace = "'s/TEST4/" + self.folderName + "/g'"
+        call(["sed", findReplace, "testconfigMulti.py", "testconfigMulti.py.new"])
+        call(["rm", "testconfigMulti.py"])
+        call(["mv", "testconfigMulti.py.new", "testconfigMulti.py"])
         os.chdir(savedPath) 
-        x = [i for i in range(2)]
-        for elem in x:
-            print x
-            time.sleep(1)
+        #x = [i for i in range(2)]
+        #for elem in x:
+        #    print x
+        #    time.sleep(1)
 
     def initializeWSN(self):
         savedPath = os.getcwd()
-        #os.chdir('./tinyos-main/support/sdk/python/SmartLightingPython')
-        #call(["sh", "startMulti.sh"])
+        os.chdir('./tinyos-main/support/sdk/python/SmartLightingPython')
+        call(["sh", "startMulti.sh"])
         os.chdir(savedPath)
-        x = [i for i in range(2)]
-        for elem in x:
-            print x
-            time.sleep(1)
+        #x = [i for i in range(2)]
+        #for elem in x:
+        #    print x
+        #    time.sleep(1)
 
     def writeUUIDs(self):
-        #call(["sh", "writeUUIDs.sh"])
-        x = [i for i in range(2)]
-        for elem in x:
-            print x
-            time.sleep(1)
+        call(["sh", "writeUUIDs.sh"])
+        #x = [i for i in range(2)]
+        #for elem in x:
+        #    print x
+        #    time.sleep(1)
 
 app = Application()
 app.master.title('Smart Lighting')
