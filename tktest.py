@@ -405,8 +405,8 @@ class Application(tk.Frame):
         Installs nesc and tiny-os. Edits App and PythonFiles.
         Takes about __ minutes.
         """
-        #call(["sh", "nesc.sh"])
-        #call(["sh", "tinyos_install.sh"])
+        call(["sh", "nesc.sh"])
+        call(["sh", "tinyos_install.sh"])
         #x = [i for i in range(2)]
         #for elem in x:
         #    print x
@@ -416,7 +416,7 @@ class Application(tk.Frame):
         """
         Installs smap. Takes about __ minutes.
         """
-        #call(["sh", "smap_install.sh"])
+        call(["sh", "smap_install.sh"])
         self.folderName = self.entryText.get()
         print self.folderName
         #x = [i for i in range(2)]
@@ -428,7 +428,8 @@ class Application(tk.Frame):
         sensorNum = self.entryText.get()
         savedPath = os.getcwd()
         os.chdir('./tinyos-main/apps/SmartLightingApps/LightSensor')
-        call(["make", "telosb", "install,", str(sensorNum)])
+        call(["sudo", "chmod", "666", "/dev/ttyUSB0"])
+        call(["make", "telosb", "install," + str(sensorNum)])
         os.chdir(savedPath)
         print sensorNum
         self.sensors.append(str(sensorNum))
@@ -439,7 +440,8 @@ class Application(tk.Frame):
 
     def configureBaseStation(self):
         savedPath = os.getcwd()
-        os.chdir('./tinyos-main/apps/BaseStation')
+        os.chdir('./tinyos-main/apps/SmartLightingApps/BaseStation')
+        call(["sudo", "chmod", "666", "/dev/ttyUSB0"])
         call(["make", "telosb", "install"])
         os.chdir(savedPath)
         # sMAP Log set-up

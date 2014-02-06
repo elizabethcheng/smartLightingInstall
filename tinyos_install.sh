@@ -30,6 +30,10 @@ echo "export CLASSPATH=$PWD/tinyos-main/support/sdk/java/tinyos.jar:." >> ~/.bas
 echo "export PYTHONPATH=$PWD/tinyos-main/support/sdk/python:$PYTHONPATH" >> ~/.bashrc
 echo "export PATH=$PWD/tinyos-main/support/sdk/c:$PATH" >> ~/.bashrc
 
+cp ADC0SensorC.nc tinyos-main/tos/platforms/telosb/
+cp Msp430ADC0P.nc tinyos-main/tos/chips/msp430/sensors
+cp Msp430ADC0C.nc tinyos-main/tos/chips/msp430/sensors
+
 # Part 4: Tar filing
 cp App App.tar.gz
 mv App.tar.gz tinyos-main/apps
