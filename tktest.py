@@ -36,15 +36,17 @@ class Application(tk.Frame):
         # Variable to store latitude entry box test
         self.latText = StringVar()
         # Set self.latText so that disableNextIfEmpty does not disable the next button
-        self.latText.set('blank')
+        #self.latText.set('blank')
+        self.latText.set('')
         # Use trace to disable the Next button if entry box is blank
-        self.latText.trace('w', self.disableNextIfEmpty)
+        #self.latText.trace('w', self.disableNextIfEmpty)
         # Variable to store longitude entry box test
         self.lonText = StringVar()
         # Set self.lonText so that disableNextIfEmpty does not disable the next button
-        self.lonText.set('blank')
+        #self.lonText.set('blank')
+        self.lonText.set('')
         # Use trace to disable the Next button if entry box is blank
-        self.lonText.trace('w', self.disableNextIfEmpty)
+        #self.lonText.trace('w', self.disableNextIfEmpty)
         self.windowVar = StringVar()
         self.windowVar.set('blank')
         self.windowVar.trace('w', self.disableNextIfEmpty)
@@ -103,7 +105,8 @@ class Application(tk.Frame):
             self.nextButton.config(state='normal')
 
     def disableNextIfEmpty(self, *args):
-        if self.entryText.get() and self.latText.get() and self.lonText.get() \
+        #if self.entryText.get() and self.latText.get() and self.lonText.get() \
+        if self.entryText.get() \
                 and self.windowVar.get() != "Select window sensor ID"\
                 and self.timezoneVar.get() != "Select timezone":
             self.nextButton.config(state='normal')
@@ -197,7 +200,9 @@ class Application(tk.Frame):
             self.text['text'] = "Light sensor " + self.entryText.get() + " successfully " +\
                     "installed. You may now place the sensor in the room. Please make sure " +\
                     "that one sensor is placed at a window. You may also want to record each " +\
-                    "sensor's position in the room for your own convenience."
+                    "sensor's position in the room for your own convenience. Click 'Next' to " +\
+                    "install the next light sensor. If you have finished installing the last " +\
+                    "light sensor, click the 'Finish' button."
             self.nextButton.config(state='normal')
             self.finishButton.config(state='normal')
 
@@ -209,8 +214,7 @@ class Application(tk.Frame):
         self.columnconfigure(1, minsize="120")
         self.columnconfigure(2, minsize="120")
         self.columnconfigure(3, minsize="0")
-        self.text['text'] = "Plug the " +\
-            "BaseStation mote into a USB port. Click 'Next' when you are finished."
+        self.text['text'] = "Plug the Base Station into a USB port. Click 'Next' when you are finished."
         self.text.grid(row=1, column=0, columnspan=3, rowspan=2)
         self.title.grid(row=0, column=0, columnspan=3)
         self.nextButton.grid(row=3, column=1)
@@ -219,7 +223,7 @@ class Application(tk.Frame):
         
     def baseStationConfigurePage(self):
         self.nextButton.config(state='disabled')
-        self.text['text'] = "Please wait while we configure the BaseStation." 
+        self.text['text'] = "Please wait while we configure the Base Station." 
         self.pb = ttk.Progressbar(self, orient="horizontal", length = 200, mode="indeterminate")
         self.pb.grid(row=2, column=0, columnspan=3)
         global install_thread
@@ -268,6 +272,8 @@ class Application(tk.Frame):
         self.timezoneLabel.grid(column=1, row=3, sticky=tk.E)
         self.timezoneMenu = tk.OptionMenu(self, self.timezoneVar, *all_timezones) 
         self.timezoneMenu.config(width="20")
+        # TODO: find a good height for option menu
+        self.timezoneMenu.config(height="20")
         self.timezoneMenu.grid(column=2, row=3, sticky="ew")
         self.latLabel = tk.Label(self, text="Latitude:")
         self.latLabel.grid(column=1, row=4, sticky=tk.E) 
@@ -405,7 +411,7 @@ class Application(tk.Frame):
         Installs nesc and tiny-os. Edits App and PythonFiles.
         Takes about __ minutes.
         """
-        call(["sh", "nesc.sh"])
+        #call(["sh", "nesc.sh"])
         call(["sh", "tinyos_install.sh"])
         #x = [i for i in range(2)]
         #for elem in x:
@@ -446,9 +452,10 @@ class Application(tk.Frame):
         os.chdir(savedPath)
         # sMAP Log set-up
         os.chdir('./tinyos-main/support/sdk/python/SmartLightingPython')
-        # TODO: Replace TEST4 with self.folderName
-        findReplace = "'s/TEST4/" + self.folderName + "/g'"
-        call(["sed", findReplace, "testconfigMulti.py", "testconfigMulti.py.new"])
+        # Replace TEST4 with self.folderName
+        #findReplace = "'s/TEST4/" + self.folderName + "/g'"
+        findReplace = "s/TEST4/" + self.folderName + "/g"
+        call(["sed", findReplace, "testconfigMulti.py", ">", "testconfigMulti.py.new"])
         call(["rm", "testconfigMulti.py"])
         call(["mv", "testconfigMulti.py.new", "testconfigMulti.py"])
         os.chdir(savedPath) 
