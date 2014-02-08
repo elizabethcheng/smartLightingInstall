@@ -258,8 +258,9 @@ class Application(tk.Frame):
         self.latText.set('')
         self.lonText.set('')
         self.text['text'] = "Please select the ID number of the window sensor " +\
-                "and the correct timezone. Then input an approximate latitude " +\
-                "(Ex: '37 52 27.447') and an approximate longitude (Ex: '12 15 33.386 W')."
+                "and the correct timezone. Then you can optionally input an " +\
+                "approximate latitude (Ex: '37 52 27.447') and an approximate " +\
+                "longitude (Ex: '12 15 33.386 W')."
         self.text.grid(columnspan=4, sticky=tk.N)
         self.windowVar.set("Select window sensor ID")
         self.windowLabel = tk.Label(self, text="Window Sensor ID:")
@@ -270,10 +271,12 @@ class Application(tk.Frame):
         self.timezoneVar.set("Select timezone")
         self.timezoneLabel = tk.Label(self, text="Timezone:")
         self.timezoneLabel.grid(column=1, row=3, sticky=tk.E)
-        self.timezoneMenu = tk.OptionMenu(self, self.timezoneVar, *all_timezones) 
+        #us_timezones = [x for x in all_timezones if x[0:2] == 'US' or x[0:7] == 'America']
+        #print us_timezones 
+        self.timezoneMenu = apply(OptionMenu, (self, self.timezoneVar) + tuple(all_timezones))
+        #self.timezoneMenu = tk.OptionMenu(self, self.timezoneVar, *us_timezones) 
         self.timezoneMenu.config(width="20")
         # TODO: find a good height for option menu
-        self.timezoneMenu.config(height="20")
         self.timezoneMenu.grid(column=2, row=3, sticky="ew")
         self.latLabel = tk.Label(self, text="Latitude:")
         self.latLabel.grid(column=1, row=4, sticky=tk.E) 
@@ -422,7 +425,7 @@ class Application(tk.Frame):
         """
         Installs smap. Takes about __ minutes.
         """
-        call(["sh", "smap_install.sh"])
+        #call(["sh", "smap_install.sh"])
         self.folderName = self.entryText.get()
         print self.folderName
         #x = [i for i in range(2)]
@@ -434,8 +437,8 @@ class Application(tk.Frame):
         sensorNum = self.entryText.get()
         savedPath = os.getcwd()
         os.chdir('./tinyos-main/apps/SmartLightingApps/LightSensor')
-        call(["sudo", "chmod", "666", "/dev/ttyUSB0"])
-        call(["make", "telosb", "install," + str(sensorNum)])
+        #call(["sudo", "chmod", "666", "/dev/ttyUSB0"])
+        #call(["make", "telosb", "install," + str(sensorNum)])
         os.chdir(savedPath)
         print sensorNum
         self.sensors.append(str(sensorNum))
@@ -447,17 +450,17 @@ class Application(tk.Frame):
     def configureBaseStation(self):
         savedPath = os.getcwd()
         os.chdir('./tinyos-main/apps/SmartLightingApps/BaseStation')
-        call(["sudo", "chmod", "666", "/dev/ttyUSB0"])
-        call(["make", "telosb", "install"])
+        #call(["sudo", "chmod", "666", "/dev/ttyUSB0"])
+        #call(["make", "telosb", "install"])
         os.chdir(savedPath)
         # sMAP Log set-up
         os.chdir('./tinyos-main/support/sdk/python/SmartLightingPython')
         # Replace TEST4 with self.folderName
         #findReplace = "'s/TEST4/" + self.folderName + "/g'"
         findReplace = "s/TEST4/" + self.folderName + "/g"
-        call(["sed", findReplace, "testconfigMulti.py", ">", "testconfigMulti.py.new"])
-        call(["rm", "testconfigMulti.py"])
-        call(["mv", "testconfigMulti.py.new", "testconfigMulti.py"])
+        #call("sed " + findReplace + " testconfigMulti.py > testconfigMulti.py.new", shell=True)
+        #call(["rm", "testconfigMulti.py"])
+        #call(["mv", "testconfigMulti.py.new", "testconfigMulti.py"])
         os.chdir(savedPath) 
         #x = [i for i in range(2)]
         #for elem in x:
@@ -475,11 +478,12 @@ class Application(tk.Frame):
         #    time.sleep(1)
 
     def writeUUIDs(self):
-        call(["sh", "writeUUIDs.sh"])
-        #x = [i for i in range(2)]
-        #for elem in x:
-        #    print x
-        #    time.sleep(1)
+        #call(["sh", "writeUUIDs.sh"])
+        # Dummy executions since writeUUIds.sh doesn't do anything now
+        x = [i for i in range(2)]
+        for elem in x:
+            print x
+            time.sleep(1)
 
 app = Application()
 app.master.title('Smart Lighting')
