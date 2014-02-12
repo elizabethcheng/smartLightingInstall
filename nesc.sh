@@ -11,6 +11,7 @@ sudo apt-get install gcc
 sudo apt-get install java-devel 
 #sudo apt-get install gcc-c++ 
 sudo apt-get install g++ 
+sudo apt-get install gcc-msp430
 
 # Installing nesc
 git clone git://github.com/tinyos/nesc.git

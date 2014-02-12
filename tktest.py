@@ -271,10 +271,8 @@ class Application(tk.Frame):
         self.timezoneVar.set("Select timezone")
         self.timezoneLabel = tk.Label(self, text="Timezone:")
         self.timezoneLabel.grid(column=1, row=3, sticky=tk.E)
-        #us_timezones = [x for x in all_timezones if x[0:2] == 'US' or x[0:7] == 'America']
-        #print us_timezones 
-        self.timezoneMenu = apply(OptionMenu, (self, self.timezoneVar) + tuple(all_timezones))
-        #self.timezoneMenu = tk.OptionMenu(self, self.timezoneVar, *us_timezones) 
+        us_timezones = ['US/Central', 'US/Eastern', 'US/Pacific']
+        self.timezoneMenu = tk.OptionMenu(self, self.timezoneVar, *us_timezones) 
         self.timezoneMenu.config(width="20")
         # TODO: find a good height for option menu
         self.timezoneMenu.grid(column=2, row=3, sticky="ew")
@@ -314,12 +312,9 @@ class Application(tk.Frame):
         self.rowconfigure(5, minsize="0")
         self.rowconfigure(6, minsize="0")
         self.text['text'] = "The system is currently initializing the Wireless Sensor Network.\n\n" +\
-                "1. A terminal window will appear. When prompted by the terminal, " +\
-                "provide the following responses:\n\n     -Enter the number of LIGHT " +\
-                "ONLY sensor nodes.\n     -Enter the number 0 for number of MULTISENSOR " +\
-                "nodes.\n\n2. If the system boots successfully, the terminal will display " +\
+                "1. If the system boots successfully, the terminal will display " +\
                 "the message 'Flushing serial port...' DO NOT CLOSE THE TERMINAL " +\
-                "WINDOW!\n\n3. Click the 'Next' button to continue the installation."
+                "WINDOW!\n\n2. Click the 'Next' button to continue the installation."
         self.text.grid(row=1, column=0, columnspan=3, rowspan=2, sticky=tk.N+tk.S)
         self.nextButton.grid(row=3, column=1)
         self.quitButton.grid(row=3, column=2)
@@ -414,7 +409,7 @@ class Application(tk.Frame):
         Installs nesc and tiny-os. Edits App and PythonFiles.
         Takes about __ minutes.
         """
-        #call(["sh", "nesc.sh"])
+        call(["sh", "nesc.sh"])
         call(["sh", "tinyos_install.sh"])
         #x = [i for i in range(2)]
         #for elem in x:
@@ -425,7 +420,7 @@ class Application(tk.Frame):
         """
         Installs smap. Takes about __ minutes.
         """
-        #call(["sh", "smap_install.sh"])
+        call(["sh", "smap_install.sh"])
         self.folderName = self.entryText.get()
         print self.folderName
         #x = [i for i in range(2)]
@@ -437,8 +432,8 @@ class Application(tk.Frame):
         sensorNum = self.entryText.get()
         savedPath = os.getcwd()
         os.chdir('./tinyos-main/apps/SmartLightingApps/LightSensor')
-        #call(["sudo", "chmod", "666", "/dev/ttyUSB0"])
-        #call(["make", "telosb", "install," + str(sensorNum)])
+        call(["sudo", "chmod", "666", "/dev/ttyUSB1"])
+        call(["make", "telosb", "install," + str(sensorNum)])
         os.chdir(savedPath)
         print sensorNum
         self.sensors.append(str(sensorNum))
@@ -450,17 +445,16 @@ class Application(tk.Frame):
     def configureBaseStation(self):
         savedPath = os.getcwd()
         os.chdir('./tinyos-main/apps/SmartLightingApps/BaseStation')
-        #call(["sudo", "chmod", "666", "/dev/ttyUSB0"])
-        #call(["make", "telosb", "install"])
+        call(["sudo", "chmod", "666", "/dev/ttyUSB1"])
+        call(["make", "telosb", "install"])
         os.chdir(savedPath)
         # sMAP Log set-up
         os.chdir('./tinyos-main/support/sdk/python/SmartLightingPython')
         # Replace TEST4 with self.folderName
-        #findReplace = "'s/TEST4/" + self.folderName + "/g'"
         findReplace = "s/TEST4/" + self.folderName + "/g"
-        #call("sed " + findReplace + " testconfigMulti.py > testconfigMulti.py.new", shell=True)
-        #call(["rm", "testconfigMulti.py"])
-        #call(["mv", "testconfigMulti.py.new", "testconfigMulti.py"])
+        call("sed " + findReplace + " testconfigMulti.py > testconfigMulti.py.new", shell=True)
+        call(["rm", "testconfigMulti.py"])
+        call(["mv", "testconfigMulti.py.new", "testconfigMulti.py"])
         os.chdir(savedPath) 
         #x = [i for i in range(2)]
         #for elem in x:
@@ -470,6 +464,16 @@ class Application(tk.Frame):
     def initializeWSN(self):
         savedPath = os.getcwd()
         os.chdir('./tinyos-main/support/sdk/python/SmartLightingPython')
+        findReplaceLight = "'s/nodenum = int/#/g'"
+        call("sed " + findReplaceLight + " udm_smapDriverMulti_onboard.py > udm_smapDriverMulti_onboard.py.new", shell=True)
+        call(["rm", "udm_smapDriverMulti_onboard.py"])
+        call(["mv", "udm_smapDriverMulti_onboard.py.new", "udm_smapDriverMulti_onboard.py"])
+        findReplaceMulti = "'s/nodemultinum = int/#/g'"
+        call("sed " + findReplaceMulti + " udm_smapDriverMulti_onboard.py > udm_smapDriverMulti_onboard.py.new", shell=True)
+        call(["rm", "udm_smapDriverMulti_onboard.py"])
+        call(["mv", "udm_smapDriverMulti_onboard.py.new", "udm_smapDriverMulti_onboard.py"])
+        call(["sed", "-i", "-e", "56i\            nodenum = " + str(len(self.sensors)), "udm_smapDriverMulti_onboard.py"])
+        call(["sed", "-i", "-e", "57i\            nodemultinum = 0", "udm_smapDriverMulti_onboard.py"])
         call(["sh", "startMulti.sh"])
         os.chdir(savedPath)
         #x = [i for i in range(2)]
@@ -478,7 +482,7 @@ class Application(tk.Frame):
         #    time.sleep(1)
 
     def writeUUIDs(self):
-        #call(["sh", "writeUUIDs.sh"])
+        # call(["sh", "writeUUIDs.sh"])
         # Dummy executions since writeUUIds.sh doesn't do anything now
         x = [i for i in range(2)]
         for elem in x:

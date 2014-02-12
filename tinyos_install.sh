@@ -1,18 +1,17 @@
 #!/bin/bash
 
 # Installing TinyOS
-#git clone git://github.com/tinyos/tinyos-main.git
-#
-#cd tinyos-main/tools
-#./Bootstrap
-#./configure
-#make
-#sudo make install
-#cd ../..
+git clone git://github.com/tinyos/tinyos-main.git
+
+cd tinyos-main/tools
+./Bootstrap
+./configure
+make
+sudo make install
+cd ../..
 
 # Part 3: Set environment variables in ~/.bashrc file
 #echo "export TOSROOT=$HOME/smart/smartLightingInstall/tinyos-main" >> ~/.bashrc
-#TODO: TEST FOLLOWING LINE
 #echo "export TOSROOT=$PWD/tinyos-main" >> ~/.bashrc
 #echo "export TOSDIR=$TOSROOT/tos" >> ~/.bashrc
 #echo "export MAKERULES=$TOSROOT/support/make/Makerules" >> ~/.bashrc
