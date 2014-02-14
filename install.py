@@ -27,6 +27,8 @@ class Application(tk.Frame):
         self.nextButton = tk.Button(self, text = 'Next', command = self.next)
         # Create the 'Finish' button, which indicates the last light sensor
         self.finishButton = tk.Button(self, text = 'Finish', command = self.lastSensor)
+        # Create the 'Back' button, which takes user back to sensorPlugPage
+        self.backButton = tk.Button(self, text = 'Back', command = self.back)
         # Variable to store the first entry box text (Sensor #, folder name, etc.)
         self.entryText = StringVar()
         # Set self.entryText so that disableNextIfEmpty does not disable the next button
@@ -74,7 +76,7 @@ class Application(tk.Frame):
         self.title.grid(column = 0, row = 0, columnspan = 3, ipadx = "30", sticky=tk.W)
         # Add text widget
         self.text = tk.Label(self, text = "The SmartLighting Installation wizard " + \
-            "will step through the software installation and light sensor set-up " + \
+            "will step through the software installation and light sensor setup " + \
             "for your building's Smart Lighting system. " + \
             "Please click 'Next' to continue.", wraplength = "470", justify = LEFT, \
             anchor = W, font=self.textFont) 
@@ -147,7 +149,10 @@ class Application(tk.Frame):
 
     def sensorPlugPage(self):
         self.pb.grid_forget()
+        self.entry.grid_forget()
         self.finishButton.grid_forget()
+        self.backButton.grid_forget()
+        self.nextButton.config(state='normal')
         self.columnconfigure(0, minsize="350")
         self.columnconfigure(1, minsize="120")
         self.columnconfigure(2, minsize="120")
@@ -161,25 +166,29 @@ class Application(tk.Frame):
         self.update_idletasks()
 
     def sensorIDPage(self):
-        self.entryText.set('')
-        self.text['text'] = "Please input the sensor ID of the sensor plugged into " + \
-                "your computer. (Ex: '1', '4', etc.)."
-        self.entry.grid(column=0, row=2, columnspan=3, rowspan=1)
-        self.update_idletasks()
-
-    def sensorConfigurePage(self):
-        self.entry.grid_forget()
         self.columnconfigure(0, minsize="230")
         self.columnconfigure(1, minsize="120")
         self.columnconfigure(2, minsize="120")
         self.columnconfigure(3, minsize="120")
         self.title.grid(row=0, column=0, columnspan=4)
+        self.text.grid(row=1, column=0, columnspan=4, rowspan=2)
+        self.backButton.grid(row=3, column=1, sticky=tk.W)
+        self.nextButton.grid(row=3, column=2)
+        self.quitButton.grid(row=3, column=3, sticky=tk.W)
+        self.entryText.set('')
+        self.text['text'] = "Please input the sensor ID of the sensor plugged into " + \
+                "your computer. (Ex: '1', '4', etc.)."
+        self.entry.grid(column=0, row=2, columnspan=4, rowspan=1)
+        self.update_idletasks()
+
+    def sensorConfigurePage(self):
+        self.entry.grid_forget()
+        self.backButton.grid_forget()
         self.text['text'] = "Please wait while we configure the light sensor." 
-        self.text.grid(row=1, column=0, rowspan=2, columnspan=4)
         self.nextButton.grid(row=3, column=1)
-        self.quitButton.grid(row=3, column=3)
         # Grid the 'Finish' button, which indicates that user is finished inputting light sensors
         self.finishButton.grid(row=3, column=2, sticky=tk.W)
+        self.quitButton.grid(row=3, column=3)
         self.nextButton.config(state='disabled')
         self.finishButton.config(state='disabled')
         self.pb = ttk.Progressbar(self, orient="horizontal", length = 200, mode="indeterminate")
@@ -210,20 +219,25 @@ class Application(tk.Frame):
         self.pb.grid_forget()
         self.finishButton.grid_forget()
         self.quitButton['text'] = "Cancel"
+        self.text['text'] = "Plug the Base Station into a USB port. Click 'Next' when you are finished."
+        self.text.grid(row=1, column=0, columnspan=4, rowspan=2)
+        self.title.grid(row=0, column=0, columnspan=4)
+        self.backButton.grid(row=3, column=1, sticky=tk.W)
+        self.nextButton.grid(row=3, column=2)
+        self.update_idletasks()
+        
+    def baseStationConfigurePage(self):
+        self.backButton.grid_forget()
         self.columnconfigure(0, minsize="350")
         self.columnconfigure(1, minsize="120")
         self.columnconfigure(2, minsize="120")
         self.columnconfigure(3, minsize="0")
-        self.text['text'] = "Plug the Base Station into a USB port. Click 'Next' when you are finished."
-        self.text.grid(row=1, column=0, columnspan=3, rowspan=2)
-        self.title.grid(row=0, column=0, columnspan=3)
+        self.nextButton.config(state='disabled')
         self.nextButton.grid(row=3, column=1)
         self.quitButton.grid(row=3, column=2)
-        self.update_idletasks()
-        
-    def baseStationConfigurePage(self):
-        self.nextButton.config(state='disabled')
         self.text['text'] = "Please wait while we configure the Base Station." 
+        self.text.grid(row=1, column=0, columnspan=3, rowspan=2)
+        self.title.grid(row=0, column=0, columnspan=3)
         self.pb = ttk.Progressbar(self, orient="horizontal", length = 200, mode="indeterminate")
         self.pb.grid(row=2, column=0, columnspan=3)
         global install_thread
@@ -274,7 +288,6 @@ class Application(tk.Frame):
         us_timezones = ['US/Central', 'US/Eastern', 'US/Pacific']
         self.timezoneMenu = tk.OptionMenu(self, self.timezoneVar, *us_timezones) 
         self.timezoneMenu.config(width="20")
-        # TODO: find a good height for option menu
         self.timezoneMenu.grid(column=2, row=3, sticky="ew")
         self.latLabel = tk.Label(self, text="Latitude:")
         self.latLabel.grid(column=1, row=4, sticky=tk.E) 
@@ -323,7 +336,6 @@ class Application(tk.Frame):
         install_thread.daemon = True
         install_thread.start()
         self.update_idletasks()
-        #self.after(20, self.check_baseconfig_thread)
 
     def uuidPage(self):
         self.nextButton.config(state='disabled')
@@ -374,6 +386,12 @@ class Application(tk.Frame):
             self.page += 1
         self.generatePage()
 
+    def back(self):
+        self.loop = True 
+        # Go back to sensorInstallPage
+        self.page = 5
+        self.generatePage()
+
     def lastSensor(self):
         self.loop = False 
         self.next()
@@ -409,8 +427,8 @@ class Application(tk.Frame):
         Installs nesc and tiny-os. Edits App and PythonFiles.
         Takes about __ minutes.
         """
-        call(["sh", "nesc.sh"])
-        call(["sh", "tinyos_install.sh"])
+        #call(["sh", "nesc.sh"])
+        #call(["sh", "tinyos_install.sh"])
         #x = [i for i in range(2)]
         #for elem in x:
         #    print x
@@ -420,7 +438,7 @@ class Application(tk.Frame):
         """
         Installs smap. Takes about __ minutes.
         """
-        call(["sh", "smap_install.sh"])
+        #call(["sh", "smap_install.sh"])
         self.folderName = self.entryText.get()
         print self.folderName
         #x = [i for i in range(2)]
@@ -431,9 +449,9 @@ class Application(tk.Frame):
     def configureSensor(self):
         sensorNum = self.entryText.get()
         savedPath = os.getcwd()
-        os.chdir('./tinyos-main/apps/SmartLightingApps/LightSensor')
-        call(["sudo", "chmod", "666", "/dev/ttyUSB1"])
-        call(["make", "telosb", "install," + str(sensorNum)])
+        #os.chdir('./tinyos-main/apps/SmartLightingApps/LightSensor')
+        #call(["sudo", "chmod", "666", "/dev/ttyUSB1"])
+        #call(["make", "telosb", "install," + str(sensorNum)])
         os.chdir(savedPath)
         print sensorNum
         self.sensors.append(str(sensorNum))
@@ -444,17 +462,17 @@ class Application(tk.Frame):
 
     def configureBaseStation(self):
         savedPath = os.getcwd()
-        os.chdir('./tinyos-main/apps/SmartLightingApps/BaseStation')
-        call(["sudo", "chmod", "666", "/dev/ttyUSB1"])
-        call(["make", "telosb", "install"])
+        #os.chdir('./tinyos-main/apps/SmartLightingApps/BaseStation')
+        #call(["sudo", "chmod", "666", "/dev/ttyUSB1"])
+        #call(["make", "telosb", "install"])
         os.chdir(savedPath)
         # sMAP Log set-up
-        os.chdir('./tinyos-main/support/sdk/python/SmartLightingPython')
+        #os.chdir('./tinyos-main/support/sdk/python/SmartLightingPython')
         # Replace TEST4 with self.folderName
         findReplace = "s/TEST4/" + self.folderName + "/g"
-        call("sed " + findReplace + " testconfigMulti.py > testconfigMulti.py.new", shell=True)
-        call(["rm", "testconfigMulti.py"])
-        call(["mv", "testconfigMulti.py.new", "testconfigMulti.py"])
+        #call("sed " + findReplace + " testconfigMulti.py > testconfigMulti.py.new", shell=True)
+        #call(["rm", "testconfigMulti.py"])
+        #call(["mv", "testconfigMulti.py.new", "testconfigMulti.py"])
         os.chdir(savedPath) 
         #x = [i for i in range(2)]
         #for elem in x:
@@ -463,18 +481,18 @@ class Application(tk.Frame):
 
     def initializeWSN(self):
         savedPath = os.getcwd()
-        os.chdir('./tinyos-main/support/sdk/python/SmartLightingPython')
+        #os.chdir('./tinyos-main/support/sdk/python/SmartLightingPython')
         findReplaceLight = "'s/nodenum = int/#/g'"
-        call("sed " + findReplaceLight + " udm_smapDriverMulti_onboard.py > udm_smapDriverMulti_onboard.py.new", shell=True)
-        call(["rm", "udm_smapDriverMulti_onboard.py"])
-        call(["mv", "udm_smapDriverMulti_onboard.py.new", "udm_smapDriverMulti_onboard.py"])
+        #call("sed " + findReplaceLight + " udm_smapDriverMulti_onboard.py > udm_smapDriverMulti_onboard.py.new", shell=True)
+        #call(["rm", "udm_smapDriverMulti_onboard.py"])
+        #call(["mv", "udm_smapDriverMulti_onboard.py.new", "udm_smapDriverMulti_onboard.py"])
         findReplaceMulti = "'s/nodemultinum = int/#/g'"
-        call("sed " + findReplaceMulti + " udm_smapDriverMulti_onboard.py > udm_smapDriverMulti_onboard.py.new", shell=True)
-        call(["rm", "udm_smapDriverMulti_onboard.py"])
-        call(["mv", "udm_smapDriverMulti_onboard.py.new", "udm_smapDriverMulti_onboard.py"])
-        call(["sed", "-i", "-e", "56i\            nodenum = " + str(len(self.sensors)), "udm_smapDriverMulti_onboard.py"])
-        call(["sed", "-i", "-e", "57i\            nodemultinum = 0", "udm_smapDriverMulti_onboard.py"])
-        call(["sh", "startMulti.sh"])
+        #call("sed " + findReplaceMulti + " udm_smapDriverMulti_onboard.py > udm_smapDriverMulti_onboard.py.new", shell=True)
+        #call(["rm", "udm_smapDriverMulti_onboard.py"])
+        #call(["mv", "udm_smapDriverMulti_onboard.py.new", "udm_smapDriverMulti_onboard.py"])
+        #call(["sed", "-i", "-e", "56i\            nodenum = " + str(len(self.sensors)), "udm_smapDriverMulti_onboard.py"])
+        #call(["sed", "-i", "-e", "57i\            nodemultinum = 0", "udm_smapDriverMulti_onboard.py"])
+        #call(["sh", "startMulti.sh"])
         os.chdir(savedPath)
         #x = [i for i in range(2)]
         #for elem in x:
