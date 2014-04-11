@@ -9,5 +9,3 @@ sudo pip install smap
 sudo apt-get install postgresql-9.1
 sudo apt-get install libpq-dev
 sudo apt-get install python-psycopg2
-
-# Part 2: Check that necessary drivers are present

@@ -20,7 +20,7 @@ class Application(tk.Frame):
         self.titleFont = tkFont.Font(family="Times", size=36, weight="bold", \
             slant="italic")
         # Font for regular text
-        self.textFont = tkFont.Font(family="Helvetica", size=14)
+        self.textFont = tkFont.Font(family="Helvetica", size=12)
         # Create the 'Cancel' button, which exits the application when pressed
         self.quitButton = tk.Button(self, text='Cancel', command=self.quit)
         # Create the 'Next' button, which calls self.next() and takes user to next page
@@ -102,7 +102,7 @@ class Application(tk.Frame):
             self.after(20, self.check_tinyos_thread)
         else:
             self.pb.stop()
-            self.text['text'] = "TinyOS software successfully installed."
+            self.text['text'] = "TinyOS software successfully installed. Please click 'Next' to continue."
             self.text.grid(rowspan=2)
             self.nextButton.config(state='normal')
 
@@ -117,7 +117,7 @@ class Application(tk.Frame):
 
     def smapFolderPage(self):
         self.pb.grid_forget()
-        self.text['text'] = "Enter a name for your sMAP data folder:"
+        self.text['text'] = "Enter a name for your sMAP data folder. Then click 'Next' to continue."
         self.entryText.set('')
         self.entry = tk.Entry(self, cursor="xterm", exportselection=0, \
             textvariable=self.entryText)
@@ -143,7 +143,7 @@ class Application(tk.Frame):
             self.after(20, self.check_smap_thread)
         else:
             self.pb.stop()
-            self.text['text'] = "sMAP software successfully installed."
+            self.text['text'] = "sMAP software successfully installed. Please click 'Next' to continue."
             self.text.grid(rowspan=2)
             self.nextButton.config(state='normal')
 
@@ -161,11 +161,13 @@ class Application(tk.Frame):
         self.quitButton.grid(row=3, column=2)
         self.text['text'] = "Pick a light sensor and put two batteries in it. Plug the " +\
                 "light sensor into a USB port. Click 'Next' when you are finished."
+        # Records motelist output in moteInfo.txt
         self.text.grid(row=1, column=0, columnspan=3, rowspan=2)
         self.title.grid(row=0, column=0, columnspan=3)
         self.update_idletasks()
 
     def sensorIDPage(self):
+        call(["sh", "motelist.sh"])
         self.columnconfigure(0, minsize="230")
         self.columnconfigure(1, minsize="120")
         self.columnconfigure(2, minsize="120")
@@ -177,7 +179,7 @@ class Application(tk.Frame):
         self.quitButton.grid(row=3, column=3, sticky=tk.W)
         self.entryText.set('')
         self.text['text'] = "Please input the sensor ID of the sensor plugged into " + \
-                "your computer. (Ex: '1', '4', etc.)."
+                "your computer. (Ex: '1', '4', etc.). Click 'Next' to continue."
         self.entry.grid(column=0, row=2, columnspan=4, rowspan=1)
         self.update_idletasks()
 
@@ -192,7 +194,7 @@ class Application(tk.Frame):
         self.nextButton.config(state='disabled')
         self.finishButton.config(state='disabled')
         self.pb = ttk.Progressbar(self, orient="horizontal", length = 200, mode="indeterminate")
-        self.pb.grid(row=2, column=0, columnspan=4, rowspan=1)
+        self.pb.grid(row=2, column=0, columnspan=4, rowspan=1, sticky=tk.S)
         global install_thread
         install_thread = threading.Thread(target=self.configureSensor)
         install_thread.daemon = True
@@ -207,9 +209,9 @@ class Application(tk.Frame):
         else:
             self.pb.stop()
             self.text['text'] = "Light sensor " + self.entryText.get() + " successfully " +\
-                    "installed. You may now place the sensor in the room. Please make sure " +\
+                    "installed. You may now unplug the sensor and place it in the room. Make sure " +\
                     "that one sensor is placed at a window. You may also want to record each " +\
-                    "sensor's position in the room for your own convenience. Click 'Next' to " +\
+                    "sensor's position in the room for your own convenience.\n\nClick 'Next' to " +\
                     "install the next light sensor. If you have finished installing the last " +\
                     "light sensor, click the 'Finish' button."
             self.nextButton.config(state='normal')
@@ -227,6 +229,7 @@ class Application(tk.Frame):
         self.update_idletasks()
         
     def baseStationConfigurePage(self):
+        call(["sh", "motelist.sh"])
         self.backButton.grid_forget()
         self.columnconfigure(0, minsize="350")
         self.columnconfigure(1, minsize="120")
@@ -239,7 +242,7 @@ class Application(tk.Frame):
         self.text.grid(row=1, column=0, columnspan=3, rowspan=2)
         self.title.grid(row=0, column=0, columnspan=3)
         self.pb = ttk.Progressbar(self, orient="horizontal", length = 200, mode="indeterminate")
-        self.pb.grid(row=2, column=0, columnspan=3)
+        self.pb.grid(row=2, column=0, columnspan=3, sticky=None)
         global install_thread
         install_thread = threading.Thread(target=self.configureBaseStation)
         install_thread.daemon = True
@@ -252,7 +255,8 @@ class Application(tk.Frame):
             self.after(20, self.check_baseconfig_thread)
         else:
             self.pb.stop()
-            self.text['text'] = "BaseStation successfully installed."
+            self.text['text'] = "BaseStation successfully installed. Click 'Next' to continue." +\
+                    "\n\nNOTE: Leave the BaseStation plugged into the computer."
             self.text.grid(rowspan=2)
             self.nextButton.config(state='normal')
 
@@ -271,8 +275,8 @@ class Application(tk.Frame):
         self.rowconfigure(6, minsize="85", pad="20")
         self.latText.set('')
         self.lonText.set('')
-        self.text['text'] = "Please select the ID number of the window sensor " +\
-                "and the correct timezone. Then you can optionally input an " +\
+        self.text['text'] = "Select the ID number of the window sensor " +\
+                "and the correct timezone. You can optionally input an " +\
                 "approximate latitude (Ex: '37 52 27.447') and an approximate " +\
                 "longitude (Ex: '12 15 33.386 W')."
         self.text.grid(columnspan=4, sticky=tk.N)
@@ -289,12 +293,12 @@ class Application(tk.Frame):
         self.timezoneMenu = tk.OptionMenu(self, self.timezoneVar, *us_timezones) 
         self.timezoneMenu.config(width="20")
         self.timezoneMenu.grid(column=2, row=3, sticky="ew")
-        self.latLabel = tk.Label(self, text="Latitude:")
+        self.latLabel = tk.Label(self, text="Latitude (OPTIONAL):")
         self.latLabel.grid(column=1, row=4, sticky=tk.E) 
         self.latEntry = tk.Entry(self, cursor="xterm", exportselection=0, \
             textvariable=self.latText)
         self.latEntry.grid(column=2, row=4, sticky="ew")
-        self.lonLabel = tk.Label(self, text="Longitude:")
+        self.lonLabel = tk.Label(self, text="Longitude (OPTIONAL):")
         self.lonLabel.grid(column=1, row=5, sticky=tk.E)
         self.lonEntry = tk.Entry(self, cursor="xterm", exportselection=0, \
             textvariable=self.lonText)
@@ -327,7 +331,8 @@ class Application(tk.Frame):
         self.text['text'] = "The system is currently initializing the Wireless Sensor Network.\n\n" +\
                 "1. If the system boots successfully, the terminal will display " +\
                 "the message 'Flushing serial port...' DO NOT CLOSE THE TERMINAL " +\
-                "WINDOW!\n\n2. Click the 'Next' button to continue the installation."
+                "WINDOW! It must stay open to allow the motes to transmit data.\n\n" +\
+                "2. Click the 'Next' button to continue the installation."
         self.text.grid(row=1, column=0, columnspan=3, rowspan=2, sticky=tk.N+tk.S)
         self.nextButton.grid(row=3, column=1)
         self.quitButton.grid(row=3, column=2)
@@ -354,7 +359,7 @@ class Application(tk.Frame):
             self.after(20, self.check_uuid_thread)
         else:
             self.pb.stop()
-            self.text['text'] = "sMAP uuid's successfully retrieved."
+            self.text['text'] = "sMAP uuid's successfully retrieved. Click 'Next' to continue."
             self.text.grid(rowspan=2)
             self.nextButton.config(state='normal')
 
@@ -427,8 +432,8 @@ class Application(tk.Frame):
         Installs nesc and tiny-os. Edits App and PythonFiles.
         Takes about __ minutes.
         """
-        #call(["sh", "nesc.sh"])
-        #call(["sh", "tinyos_install.sh"])
+        call(["sh", "nesc.sh"])
+        call(["sh", "tinyos_install.sh"])
         #x = [i for i in range(2)]
         #for elem in x:
         #    print x
@@ -438,7 +443,7 @@ class Application(tk.Frame):
         """
         Installs smap. Takes about __ minutes.
         """
-        #call(["sh", "smap_install.sh"])
+        call(["sh", "smap_install.sh"])
         self.folderName = self.entryText.get()
         print self.folderName
         #x = [i for i in range(2)]
@@ -446,12 +451,31 @@ class Application(tk.Frame):
         #    print x
         #    time.sleep(1)
 
+    def parseBaseStationMoteList(self):
+        f = open('moteInfo.txt', 'r')
+        for line in f:
+            lineList = line.split()
+            if len(lineList) > 2:
+                if lineList[2][0:4] == 'Mote':
+                    return lineList[1][-1]
+
+    def parseLightSensorMoteList(self):
+        f = open('moteInfo.txt', 'r')
+        for line in f:
+            lineList = line.split()
+            if len(lineList) > 2:
+                if lineList[2][0:4] == 'XBOW':
+                    return lineList[1][-1]
+
     def configureSensor(self):
+        # Parse the moteInfo.txt file to get the right ttyUSB_ number
+        sensorUSB = self.parseLightSensorMoteList()
+        print sensorUSB
         sensorNum = self.entryText.get()
         savedPath = os.getcwd()
-        #os.chdir('./tinyos-main/apps/SmartLightingApps/LightSensor')
-        #call(["sudo", "chmod", "666", "/dev/ttyUSB1"])
-        #call(["make", "telosb", "install," + str(sensorNum)])
+        os.chdir('./tinyos-main/apps/SmartLightingApps/LightSensor')
+        call(["sudo", "chmod", "666", "/dev/ttyUSB" + sensorUSB])
+        call(["make", "telosb", "install," + str(sensorNum)])
         os.chdir(savedPath)
         print sensorNum
         self.sensors.append(str(sensorNum))
@@ -461,18 +485,22 @@ class Application(tk.Frame):
         #    time.sleep(1)
 
     def configureBaseStation(self):
+        # Parse the moteInfo.txt file to get the right ttyUSB_ number
+        # Save the baseStation number in baseStationNum variable
+        self.baseUSB = self.parseBaseStationMoteList()
+        print self.baseUSB
         savedPath = os.getcwd()
-        #os.chdir('./tinyos-main/apps/SmartLightingApps/BaseStation')
-        #call(["sudo", "chmod", "666", "/dev/ttyUSB1"])
-        #call(["make", "telosb", "install"])
+        os.chdir('./tinyos-main/apps/SmartLightingApps/BaseStation')
+        call(["sudo", "chmod", "666", "/dev/ttyUSB" + self.baseUSB])
+        call(["make", "telosb", "install"])
         os.chdir(savedPath)
         # sMAP Log set-up
-        #os.chdir('./tinyos-main/support/sdk/python/SmartLightingPython')
+        os.chdir('./tinyos-main/support/sdk/python/SmartLightingPython')
         # Replace TEST4 with self.folderName
         findReplace = "s/TEST4/" + self.folderName + "/g"
-        #call("sed " + findReplace + " testconfigMulti.py > testconfigMulti.py.new", shell=True)
-        #call(["rm", "testconfigMulti.py"])
-        #call(["mv", "testconfigMulti.py.new", "testconfigMulti.py"])
+        call("sed " + findReplace + " testconfigMulti.py > testconfigMulti.py.new", shell=True)
+        call(["rm", "testconfigMulti.py"])
+        call(["mv", "testconfigMulti.py.new", "testconfigMulti.py"])
         os.chdir(savedPath) 
         #x = [i for i in range(2)]
         #for elem in x:
@@ -480,19 +508,24 @@ class Application(tk.Frame):
         #    time.sleep(1)
 
     def initializeWSN(self):
+        # Use baseStationNum from configureBaseStation to change the ttyUSB_ number in udm...py 
         savedPath = os.getcwd()
-        #os.chdir('./tinyos-main/support/sdk/python/SmartLightingPython')
+        os.chdir('./tinyos-main/support/sdk/python/SmartLightingPython')
+        findReplaceUSB = "'s/ttyUSB0/ttyUSB" + self.baseUSB + "/g'"
+        call("sed " + findReplaceUSB + " udm_smapDriverMulti_onboard.py > udm_smapDriverMulti_onboard.py.new", shell=True)
+        call(["rm", "udm_smapDriverMulti_onboard.py"])
+        call(["mv", "udm_smapDriverMulti_onboard.py.new", "udm_smapDriverMulti_onboard.py"])
         findReplaceLight = "'s/nodenum = int/#/g'"
-        #call("sed " + findReplaceLight + " udm_smapDriverMulti_onboard.py > udm_smapDriverMulti_onboard.py.new", shell=True)
-        #call(["rm", "udm_smapDriverMulti_onboard.py"])
-        #call(["mv", "udm_smapDriverMulti_onboard.py.new", "udm_smapDriverMulti_onboard.py"])
+        call("sed " + findReplaceLight + " udm_smapDriverMulti_onboard.py > udm_smapDriverMulti_onboard.py.new", shell=True)
+        call(["rm", "udm_smapDriverMulti_onboard.py"])
+        call(["mv", "udm_smapDriverMulti_onboard.py.new", "udm_smapDriverMulti_onboard.py"])
         findReplaceMulti = "'s/nodemultinum = int/#/g'"
-        #call("sed " + findReplaceMulti + " udm_smapDriverMulti_onboard.py > udm_smapDriverMulti_onboard.py.new", shell=True)
-        #call(["rm", "udm_smapDriverMulti_onboard.py"])
-        #call(["mv", "udm_smapDriverMulti_onboard.py.new", "udm_smapDriverMulti_onboard.py"])
-        #call(["sed", "-i", "-e", "56i\            nodenum = " + str(len(self.sensors)), "udm_smapDriverMulti_onboard.py"])
-        #call(["sed", "-i", "-e", "57i\            nodemultinum = 0", "udm_smapDriverMulti_onboard.py"])
-        #call(["sh", "startMulti.sh"])
+        call("sed " + findReplaceMulti + " udm_smapDriverMulti_onboard.py > udm_smapDriverMulti_onboard.py.new", shell=True)
+        call(["rm", "udm_smapDriverMulti_onboard.py"])
+        call(["mv", "udm_smapDriverMulti_onboard.py.new", "udm_smapDriverMulti_onboard.py"])
+        call(["sed", "-i", "-e", "71i\            nodenum = " + str(len(self.sensors)), "udm_smapDriverMulti_onboard.py"])
+        call(["sed", "-i", "-e", "72i\            nodemultinum = 0", "udm_smapDriverMulti_onboard.py"])
+        call(["sh", "startMulti.sh"])
         os.chdir(savedPath)
         #x = [i for i in range(2)]
         #for elem in x:

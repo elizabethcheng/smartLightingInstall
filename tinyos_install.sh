@@ -11,17 +11,6 @@ sudo make install
 cd ../..
 
 # Part 3: Set environment variables in ~/.bashrc file
-#echo "export TOSROOT=$HOME/smart/smartLightingInstall/tinyos-main" >> ~/.bashrc
-#echo "export TOSROOT=$PWD/tinyos-main" >> ~/.bashrc
-#echo "export TOSDIR=$TOSROOT/tos" >> ~/.bashrc
-#echo "export MAKERULES=$TOSROOT/support/make/Makerules" >> ~/.bashrc
-#echo "export CLASSPATH=$TOSROOT/support/sdk/java/tinyos.jar:." >> ~/.bashrc
-#echo "export PYTHONPATH=$TOSROOT/support/sdk/python:$PYTHONPATH" >> ~/.bashrc
-#echo "export PATH=$TOSROOT/support/sdk/c:$PATH" >> ~/.bashrc
-
-# Part 3: Set environment variables in ~/.bashrc file
-#echo "export TOSROOT=$HOME/smart/smartLightingInstall/tinyos-main" >> ~/.bashrc
-#TODO: TEST FOLLOWING LINE
 echo "export TOSROOT=$PWD/tinyos-main" >> ~/.bashrc
 echo "export TOSDIR=$PWD/tinyos-main/tos" >> ~/.bashrc
 echo "export MAKERULES=$PWD/tinyos-main/support/make/Makerules" >> ~/.bashrc

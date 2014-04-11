@@ -1,5 +1,8 @@
 #!/bin/bash
 
+rm -rf nesc
+rm -rf tinyos-main
+
 sudo apt-get update
 
 # Install python modules (tkinter, numpy, scipy, matplotlib, pandas, sqlite3, pip, setuptools
@@ -18,15 +21,16 @@ sudo easy_install -U statsmodels
 sudo apt-get install curl
 
 # Update autoconf
-cd /usr/local
-export build=~/devtools # or wherever you'd like to build
-mkdir -p $build
+#cd /usr/local
+#export build=~/devtools # or wherever you'd like to build
+#mkdir -p $build
 
 ##
 # Autoconf
 # http://ftpmirror.gnu.org/autoconf
 
-cd $build
+mkdir -p ~/sldevtools
+cd ~/sldevtools 
 curl -OL http://ftpmirror.gnu.org/autoconf/autoconf-2.69.tar.gz
 tar xzf autoconf-2.69.tar.gz
 cd autoconf-2.69
